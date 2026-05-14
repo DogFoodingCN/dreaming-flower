@@ -41,6 +41,11 @@ yarn-error.log*
 .omc/
 .claude/settings.local.json
 
+# local AI workspace
+.ai/plans/
+.ai/ideas/
+.ai/drafts/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
