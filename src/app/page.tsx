@@ -6,7 +6,7 @@ export default function Home() {
           DF
         </div>
         <h1 className="text-4xl font-semibold tracking-tight text-black dark:text-zinc-50">
-          Hello, Dreaming Flower &amp; DogFooding ~
+          <span className="typing-text">Hello, Dreaming Flower &amp; DogFooding ~</span>
         </h1>
       </main>
     </div>
