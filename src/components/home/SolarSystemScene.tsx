@@ -21,6 +21,18 @@ type SceneObject = {
   baseScale: number;
 };
 
+type DragState = {
+  active: boolean;
+  moved: boolean;
+  pointerId: number | null;
+  startX: number;
+  startY: number;
+  lastX: number;
+  lastY: number;
+  rotationX: number;
+  rotationY: number;
+};
+
 function createMaterial({
   planet,
   emissive = false,
@@ -34,14 +46,18 @@ function createMaterial({
   renderer: THREE.WebGLRenderer;
   disposables: Disposable[];
 }) {
-  const material = new THREE.MeshStandardMaterial({
-    color: planet.color,
-    emissive: emissive ? planet.color : "#08040f",
-    emissiveIntensity: emissive ? 2.35 : 0.03,
-    roughness: emissive ? 0.28 : 0.58,
-    metalness: 0.02,
-    toneMapped: false,
-  });
+  const material = emissive
+    ? new THREE.MeshBasicMaterial({
+        color: planet.color,
+      })
+    : new THREE.MeshStandardMaterial({
+        color: planet.color,
+        emissive: "#08040f",
+        emissiveIntensity: 0.03,
+        roughness: 0.58,
+        metalness: 0.02,
+        toneMapped: false,
+      });
 
   if (planet.texturePath) {
     loader.load(
@@ -50,7 +66,7 @@ function createMaterial({
         texture.colorSpace = THREE.SRGBColorSpace;
         texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
         material.map = texture;
-        material.color.set(emissive ? "#fff2bf" : "#f2f4ff");
+        material.color.set("#ffffff");
         material.needsUpdate = true;
         disposables.push(texture);
       },
@@ -185,18 +201,29 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const scene = new THREE.Scene();
+    const cameraRig = new THREE.Group();
+    scene.add(cameraRig);
+
     const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 100);
     camera.position.set(0, 7.2, 10.8);
     camera.lookAt(0, 0, 0);
+    cameraRig.add(camera);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
     mount.appendChild(renderer.domElement);
 
-    const ambientLight = new THREE.AmbientLight(theme === "night" ? 0x8ba4ff : 0xffffff, theme === "night" ? 0.75 : 1.2);
-    const sunLight = new THREE.PointLight(0xffd36f, theme === "night" ? 5.5 : 4.2, 40);
-    sunLight.position.set(0, 0, 0);
+    const ambientLight = new THREE.AmbientLight(
+      theme === "night" ? 0x8ba4ff : 0xffffff, // 环境光颜色：影响全场基础亮度，夜间偏蓝，白天偏白。
+      theme === "night" ? 0.75 : 1.2, // 环境光强度：数值越大，星球暗面越亮；降低可增强明暗对比。
+    );
+    const sunLight = new THREE.PointLight(
+      0xffd36f, // 太阳点光源颜色：越偏黄/橙，太阳照明越暖。
+      theme === "night" ? 38.5 : 34.2, // 太阳点光源强度：数值越大，太阳周围和行星受光越亮。
+      140, // 太阳点光源照射距离：数值越大，外层行星也会受到更明显照亮。
+    );
+    sunLight.position.set(0, 0, 0); // 太阳光源位置：保持在中心，与太阳模型重合。
     scene.add(ambientLight, sunLight);
 
     const loader = new THREE.TextureLoader();
@@ -205,6 +232,17 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
     const selectableMeshes: THREE.Mesh[] = [];
     const disposables: Disposable[] = [];
     const objects: SceneObject[] = [];
+    const dragState: DragState = {
+      active: false,
+      moved: false,
+      pointerId: null,
+      startX: 0,
+      startY: 0,
+      lastX: 0,
+      lastY: 0,
+      rotationX: 0,
+      rotationY: 0,
+    };
 
     const sunMesh = createPlanetMesh({
       planet: sun,
@@ -218,15 +256,17 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
     objects.push({ planet: sun, pivot: scene, mesh: sunMesh, baseScale: 1 });
 
     const sunGlow = new THREE.Mesh(
-      new THREE.SphereGeometry(sun.radius * 1.42, 48, 32),
+      new THREE.SphereGeometry(
+        sun.radius * 2.42, // 太阳光晕半径：相对太阳半径放大；越大光晕范围越大。
+        48, // 太阳光晕横向分段：越大越圆滑，但渲染成本略高。
+        32, // 太阳光晕纵向分段：越大越圆滑，但渲染成本略高。
+      ),
       new THREE.MeshBasicMaterial({
-        color: sun.color,
-        transparent: true,
-        opacity: theme === "night" ? 0.18 : 0.11,
+        color: sun.color, // 太阳光晕颜色：默认跟随 planets.ts 中 Sun 的 color。
+        transparent: true, // 太阳光晕透明开关：保持 true 才能呈现柔和叠加。
+        opacity: theme === "night" ? 0.18 : 0.11, // 太阳光晕透明度：数值越大越明显，白天建议更低。
       }),
     );
-    scene.add(sunGlow);
-    disposables.push(sunGlow.geometry, sunGlow.material);
 
     planets.forEach((planet, index) => {
       createOrbitingPlanet({
@@ -284,18 +324,67 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
       return raycaster.intersectObjects(selectableMeshes, true)[0];
     };
 
+    const updateDragRotation = (event: PointerEvent) => {
+      const deltaX = event.clientX - dragState.lastX;
+      const deltaY = event.clientY - dragState.lastY;
+      dragState.lastX = event.clientX;
+      dragState.lastY = event.clientY;
+
+      if (Math.hypot(event.clientX - dragState.startX, event.clientY - dragState.startY) > 4) {
+        dragState.moved = true;
+      }
+
+      dragState.rotationY += deltaX * 0.006;
+      dragState.rotationX = THREE.MathUtils.clamp(dragState.rotationX + deltaY * 0.0035, -0.55, 0.55);
+      cameraRig.rotation.y = dragState.rotationY;
+      cameraRig.rotation.x = dragState.rotationX;
+    };
+
     const handlePointerMove = (event: PointerEvent) => {
+      if (dragState.active && dragState.pointerId === event.pointerId) {
+        updateDragRotation(event);
+        renderer.domElement.style.cursor = "grabbing";
+        return;
+      }
+
       const intersect = getIntersect(event);
       hoveredMesh = intersect?.object instanceof THREE.Mesh ? intersect.object : null;
       renderer.domElement.style.cursor = hoveredMesh ? "pointer" : "grab";
     };
 
     const handlePointerLeave = () => {
+      dragState.active = false;
+      dragState.pointerId = null;
       hoveredMesh = null;
       renderer.domElement.style.cursor = "grab";
     };
 
     const handlePointerDown = (event: PointerEvent) => {
+      dragState.active = true;
+      dragState.moved = false;
+      dragState.pointerId = event.pointerId;
+      dragState.startX = event.clientX;
+      dragState.startY = event.clientY;
+      dragState.lastX = event.clientX;
+      dragState.lastY = event.clientY;
+      renderer.domElement.setPointerCapture(event.pointerId);
+      renderer.domElement.style.cursor = "grabbing";
+    };
+
+    const handlePointerUp = (event: PointerEvent) => {
+      if (dragState.pointerId !== event.pointerId) {
+        return;
+      }
+
+      dragState.active = false;
+      dragState.pointerId = null;
+      renderer.domElement.releasePointerCapture(event.pointerId);
+      renderer.domElement.style.cursor = "grab";
+
+      if (dragState.moved) {
+        return;
+      }
+
       const intersect = getIntersect(event);
       const planet = intersect?.object.userData.planet as Planet | undefined;
       if (planet) {
@@ -316,7 +405,7 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
         mesh.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.12);
       });
 
-      sunGlow.rotation.y += 0.05 * delta * motionFactor;
+      sunGlow.rotation.y += 0.05 * delta * motionFactor; // 太阳光晕自转速度：数值越大，光晕视觉旋转越快。
       stars.rotation.y += 0.004 * delta * motionFactor;
       renderer.render(scene, camera);
       frame = window.requestAnimationFrame(animate);
@@ -329,6 +418,8 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
     renderer.domElement.addEventListener("pointermove", handlePointerMove);
     renderer.domElement.addEventListener("pointerleave", handlePointerLeave);
     renderer.domElement.addEventListener("pointerdown", handlePointerDown);
+    renderer.domElement.addEventListener("pointerup", handlePointerUp);
+    renderer.domElement.addEventListener("pointercancel", handlePointerLeave);
 
     return () => {
       window.cancelAnimationFrame(frame);
@@ -336,6 +427,8 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
       renderer.domElement.removeEventListener("pointermove", handlePointerMove);
       renderer.domElement.removeEventListener("pointerleave", handlePointerLeave);
       renderer.domElement.removeEventListener("pointerdown", handlePointerDown);
+      renderer.domElement.removeEventListener("pointerup", handlePointerUp);
+      renderer.domElement.removeEventListener("pointercancel", handlePointerLeave);
       disposables.forEach((item) => item.dispose());
       renderer.dispose();
       renderer.domElement.remove();
