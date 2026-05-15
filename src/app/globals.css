@@ -45,10 +45,10 @@ button {
   overflow: hidden;
   color: #f8fbff;
   background:
-    radial-gradient(circle at 50% 45%, rgba(255, 209, 102, 0.18), transparent 16rem),
-    radial-gradient(circle at 18% 20%, rgba(84, 130, 255, 0.22), transparent 18rem),
-    radial-gradient(circle at 82% 78%, rgba(149, 90, 255, 0.16), transparent 16rem),
-    linear-gradient(135deg, #030711 0%, #08142f 48%, #12081f 100%);
+    radial-gradient(circle at 50% 45%, rgba(255, 182, 39, 0.3), transparent 15rem),
+    radial-gradient(circle at 18% 20%, rgba(36, 88, 255, 0.34), transparent 18rem),
+    radial-gradient(circle at 82% 78%, rgba(125, 42, 255, 0.28), transparent 16rem),
+    linear-gradient(135deg, #00020a 0%, #031037 48%, #0a0218 100%);
   isolation: isolate;
 }
 
@@ -58,7 +58,7 @@ button {
     radial-gradient(circle at 50% 45%, rgba(255, 193, 79, 0.35), transparent 17rem),
     radial-gradient(circle at 18% 20%, rgba(79, 124, 255, 0.2), transparent 19rem),
     radial-gradient(circle at 82% 78%, rgba(244, 168, 255, 0.22), transparent 17rem),
-    linear-gradient(135deg, #f7fbff 0%, #dfeaff 52%, #fff3dd 100%);
+    linear-gradient(135deg, #ecf6ff 0%, #b9d0ff 52%, #ffe0a8 100%);
 }
 
 .solar-page::before,
@@ -71,7 +71,7 @@ button {
 }
 
 .solar-page::before {
-  opacity: 0.32;
+  opacity: 0.48;
   background-image:
     radial-gradient(circle, currentColor 0 1px, transparent 1px),
     radial-gradient(circle, currentColor 0 1px, transparent 1px);
@@ -84,7 +84,7 @@ button {
 }
 
 .solar-page::after {
-  background: radial-gradient(circle at 50% 48%, transparent 0 22rem, rgba(0, 0, 0, 0.34) 64rem);
+  background: radial-gradient(circle at 50% 48%, transparent 0 18rem, rgba(0, 0, 0, 0.58) 60rem);
 }
 
 .solar-page--day::after {
