@@ -44,24 +44,112 @@ type DragState = {
   rotationY: number;
 };
 
+type ConstellationGuideConfig = {
+  name: string;
+  position: THREE.Vector3;
+  scale: number;
+  rotation: number;
+  points: readonly (readonly [number, number])[];
+  segments: readonly (readonly [number, number])[];
+  labelOffset: readonly [number, number];
+};
+
 const NEBULA_TEXTURES = [
   {
     path: "/textures/nebulae/orion.jpg",
-    position: new THREE.Vector3(-15, 5.8, -26),
-    scale: [8.4, 5.2] as const,
-    rotation: -0.18,
+    position: new THREE.Vector3(9, -1.8, -28),
+    scale: [8.6, 5.3] as const,
+    rotation: -0.16,
+    seed: 11,
+    colors: [0x9fc4ff, 0xd8b7ff, 0xffffff] as const,
   },
   {
     path: "/textures/nebulae/eagle.jpg",
-    position: new THREE.Vector3(14, -1.4, -29),
-    scale: [9.2, 5.6] as const,
-    rotation: 0.22,
+    position: new THREE.Vector3(17, 3.2, -31),
+    scale: [7.8, 4.8] as const,
+    rotation: 0.18,
+    seed: 23,
+    colors: [0x8fb9ff, 0xffd89a, 0xf4f7ff] as const,
   },
   {
     path: "/textures/nebulae/carina.jpg",
-    position: new THREE.Vector3(4, 7.8, -32),
-    scale: [10.4, 6.2] as const,
-    rotation: 0.08,
+    position: new THREE.Vector3(4, 8.4, -34),
+    scale: [10.8, 6.4] as const,
+    rotation: 0.06,
+    seed: 37,
+    colors: [0xffa6d6, 0xb9c8ff, 0xffefd1] as const,
+  },
+];
+
+const CONSTELLATION_GUIDES: ConstellationGuideConfig[] = [
+  {
+    name: "北斗七星",
+    position: new THREE.Vector3(-12.5, 7.4, -25),
+    scale: 1.35,
+    rotation: -0.2,
+    points: [
+      [-2.2, 0.25],
+      [-1.45, 0.05],
+      [-0.7, 0.18],
+      [0.05, 0.02],
+      [0.62, 0.55],
+      [1.35, 0.75],
+      [2.05, 0.52],
+    ],
+    segments: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]],
+    labelOffset: [2.45, 0.92],
+  },
+  {
+    name: "猎户座",
+    position: new THREE.Vector3(10.5, -4.4, -24),
+    scale: 1.12,
+    rotation: 0.1,
+    points: [
+      [-1.2, 1.25],
+      [1.05, 1.05],
+      [-0.42, 0.22],
+      [0.05, 0.12],
+      [0.52, 0.02],
+      [-1.15, -1.05],
+      [1.0, -1.25],
+    ],
+    segments: [[0, 2], [1, 4], [2, 3], [3, 4], [2, 5], [4, 6]],
+    labelOffset: [1.45, -1.55],
+  },
+  {
+    name: "仙女座星系",
+    position: new THREE.Vector3(-8.8, 4.8, -30),
+    scale: 1.2,
+    rotation: 0.38,
+    points: [
+      [-1.55, 0],
+      [-0.78, 0.34],
+      [0, 0],
+      [0.78, -0.34],
+      [1.55, 0],
+      [-0.72, -0.32],
+      [0.72, 0.32],
+    ],
+    segments: [[0, 1], [1, 2], [2, 3], [3, 4], [5, 2], [2, 6]],
+    labelOffset: [1.8, 0.58],
+  },
+  {
+    name: "天蝎座",
+    position: new THREE.Vector3(13.8, -7.1, -27),
+    scale: 1.05,
+    rotation: -0.42,
+    points: [
+      [-1.85, 0.65],
+      [-1.15, 0.2],
+      [-0.48, 0.02],
+      [0.2, -0.22],
+      [0.78, -0.62],
+      [1.32, -0.92],
+      [1.75, -0.55],
+      [1.42, -0.15],
+    ],
+    segments: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7]],
+    labelOffset: [1.95, -0.9],
   },
 ];
 const DEFAULT_PLANET_EMISSIVE = new THREE.Color("#08040f");
@@ -75,6 +163,7 @@ type GalaxyBackground = {
   galaxyDisk: THREE.Points;
   galaxyArms: THREE.Points;
   nebulae: THREE.Group;
+  constellationGuide: THREE.Group;
 };
 
 function updateSelectedLighting(mesh: THREE.Mesh, isSelected: boolean) {
@@ -128,6 +217,100 @@ function createGalaxyPoints({
   return points;
 }
 
+function createNebulaAlphaTexture(seed: number, disposables: Disposable[]) {
+  const size = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    return null;
+  }
+
+  const imageData = context.createImageData(size, size);
+  const data = imageData.data;
+  const center = size / 2;
+
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const dx = (x - center) / center;
+      const dy = (y - center) / center;
+      const angle = Math.atan2(dy, dx);
+      const distance = Math.hypot(dx, dy);
+      const edge = 0.52 + Math.sin(angle * 3 + seed) * 0.12 + Math.sin(angle * 7 + seed * 0.73) * 0.08;
+      const filaments = Math.sin((dx * 5.2 + dy * 2.1 + seed) * Math.PI) * 0.1 + Math.sin((dx * -2.7 + dy * 6.4 + seed * 0.31) * Math.PI) * 0.08;
+      const cloud = Math.max(0, 1 - distance / (edge + filaments));
+      const feather = Math.pow(THREE.MathUtils.smoothstep(cloud, 0, 1), 1.9);
+      const index = (y * size + x) * 4;
+      data[index] = 255;
+      data[index + 1] = 255;
+      data[index + 2] = 255;
+      data[index + 3] = Math.round(255 * feather);
+    }
+  }
+
+  context.putImageData(imageData, 0, 0);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  disposables.push(texture);
+  return texture;
+}
+
+function createNebulaCloud({
+  scale,
+  colors,
+  seed,
+  theme,
+  disposables,
+}: {
+  scale: readonly [number, number];
+  colors: readonly number[];
+  seed: number;
+  theme: Theme;
+  disposables: Disposable[];
+}) {
+  const group = new THREE.Group();
+  const radius = Math.max(scale[0], scale[1]) * 0.5;
+  const layers = [
+    { count: 180, size: 0.22, opacity: theme === "night" ? 0.085 : 0.024, radiusScale: 0.94, color: colors[0] },
+    { count: 120, size: 0.14, opacity: theme === "night" ? 0.12 : 0.036, radiusScale: 0.58, color: colors[1] },
+    { count: 28, size: 0.048, opacity: theme === "night" ? 0.38 : 0.12, radiusScale: 0.34, color: colors[2] },
+  ];
+
+  layers.forEach((layer, layerIndex) => {
+    const positions = new Float32Array(layer.count * 3);
+
+    for (let index = 0; index < layer.count; index += 1) {
+      const angle = (Math.random() + seed * 0.017 + layerIndex * 0.13) * Math.PI * 2;
+      const distance = Math.pow(Math.random(), 1.75) * radius * layer.radiusScale;
+      const wave = Math.sin(angle * 3 + seed) * radius * 0.08;
+      positions[index * 3] = Math.cos(angle) * (distance + wave) * (scale[0] / radius) * 0.54;
+      positions[index * 3 + 1] = Math.sin(angle) * distance * (scale[1] / radius) * 0.34 + (Math.random() - 0.5) * scale[1] * 0.08;
+      positions[index * 3 + 2] = (Math.random() - 0.5) * 0.72;
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    const material = new THREE.PointsMaterial({
+      color: layer.color,
+      size: layer.size,
+      transparent: true,
+      opacity: layer.opacity,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      depthTest: false,
+      sizeAttenuation: true,
+    });
+    const points = new THREE.Points(geometry, material);
+    points.renderOrder = -3;
+    group.add(points);
+    disposables.push(geometry, material);
+  });
+
+  return group;
+}
+
 function createNebulae({
   theme,
   loader,
@@ -138,37 +321,143 @@ function createNebulae({
   disposables: Disposable[];
 }) {
   const group = new THREE.Group();
-  const opacity = theme === "night" ? 0.32 : 0.12;
 
-  NEBULA_TEXTURES.forEach(({ path, position, scale, rotation }) => {
-    const geometry = new THREE.PlaneGeometry(scale[0], scale[1]);
+  NEBULA_TEXTURES.forEach(({ path, position, scale, rotation, seed, colors }) => {
+    const texture = loader.load(path, (loadedTexture) => {
+      loadedTexture.colorSpace = THREE.SRGBColorSpace;
+      loadedTexture.offset.set(0.12, 0.12);
+      loadedTexture.repeat.set(0.76, 0.76);
+    });
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.offset.set(0.12, 0.12);
+    texture.repeat.set(0.76, 0.76);
+    const alphaMap = createNebulaAlphaTexture(seed, disposables);
+    const geometry = new THREE.PlaneGeometry(scale[0], scale[1], 1, 1);
     const material = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
+      map: texture,
+      alphaMap: alphaMap ?? undefined,
       transparent: true,
-      opacity,
+      opacity: theme === "night" ? 0.11 : 0.03,
+      blending: THREE.AdditiveBlending,
       depthWrite: false,
       depthTest: false,
       side: THREE.DoubleSide,
+      toneMapped: false,
     });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.copy(position);
-    mesh.rotation.z = rotation;
-    mesh.renderOrder = -4;
-    group.add(mesh);
-    disposables.push(geometry, material);
+    const plane = new THREE.Mesh(geometry, material);
+    const cloud = createNebulaCloud({ scale, colors, seed, theme, disposables });
+    plane.position.z = -0.12;
+    plane.renderOrder = -5;
+    cloud.renderOrder = -4;
 
-    loader.load(
-      path,
-      (texture) => {
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.anisotropy = 4;
-        material.map = texture;
-        material.needsUpdate = true;
-        disposables.push(texture);
-      },
-      undefined,
-      () => undefined,
-    );
+    const nebula = new THREE.Group();
+    nebula.position.copy(position);
+    nebula.rotation.z = rotation;
+    nebula.add(plane, cloud);
+    group.add(nebula);
+    disposables.push(texture, geometry, material);
+  });
+
+  return group;
+}
+
+function createConstellationLabel(text: string, theme: Theme, disposables: Disposable[]) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 96;
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    return null;
+  }
+
+  context.font = "600 32px Arial, Helvetica, sans-serif";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.fillStyle = theme === "night" ? "rgba(234, 241, 255, 0.78)" : "rgba(40, 59, 103, 0.32)";
+  context.shadowColor = theme === "night" ? "rgba(114, 151, 255, 0.48)" : "rgba(255, 255, 255, 0.28)";
+  context.shadowBlur = 12;
+  context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  const material = new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+    opacity: theme === "night" ? 0.72 : 0.26,
+    depthWrite: false,
+    depthTest: false,
+  });
+  const sprite = new THREE.Sprite(material);
+  sprite.scale.set(2.1, 0.78, 1);
+  sprite.renderOrder = -1;
+  disposables.push(texture, material);
+  return sprite;
+}
+
+function createConstellationGuide(config: ConstellationGuideConfig, theme: Theme, disposables: Disposable[]) {
+  const group = new THREE.Group();
+  group.position.copy(config.position);
+  group.rotation.z = config.rotation;
+
+  const linePositions: number[] = [];
+  config.segments.forEach(([start, end]) => {
+    const [startX, startY] = config.points[start];
+    const [endX, endY] = config.points[end];
+    linePositions.push(startX * config.scale, startY * config.scale, 0, endX * config.scale, endY * config.scale, 0);
+  });
+
+  const lineGeometry = new THREE.BufferGeometry();
+  lineGeometry.setAttribute("position", new THREE.Float32BufferAttribute(linePositions, 3));
+  const lineMaterial = new THREE.LineBasicMaterial({
+    color: theme === "night" ? 0xbfd1ff : 0x526aa3,
+    transparent: true,
+    opacity: theme === "night" ? 0.32 : 0.12,
+    depthWrite: false,
+    depthTest: false,
+  });
+  const lines = new THREE.LineSegments(lineGeometry, lineMaterial);
+  lines.renderOrder = -2;
+  group.add(lines);
+  disposables.push(lineGeometry, lineMaterial);
+
+  const starPositions = new Float32Array(config.points.length * 3);
+  config.points.forEach(([x, y], index) => {
+    starPositions[index * 3] = x * config.scale;
+    starPositions[index * 3 + 1] = y * config.scale;
+    starPositions[index * 3 + 2] = 0;
+  });
+  const starGeometry = new THREE.BufferGeometry();
+  starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
+  const starMaterial = new THREE.PointsMaterial({
+    color: theme === "night" ? 0xffffff : 0x526aa3,
+    size: theme === "night" ? 0.075 : 0.052,
+    transparent: true,
+    opacity: theme === "night" ? 0.86 : 0.24,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    depthTest: false,
+    sizeAttenuation: true,
+  });
+  const stars = new THREE.Points(starGeometry, starMaterial);
+  stars.renderOrder = -1;
+  group.add(stars);
+  disposables.push(starGeometry, starMaterial);
+
+  const label = createConstellationLabel(config.name, theme, disposables);
+  if (label) {
+    label.position.set(config.labelOffset[0] * config.scale, config.labelOffset[1] * config.scale, 0);
+    group.add(label);
+  }
+
+  return group;
+}
+
+function createConstellationGuides(theme: Theme, disposables: Disposable[]) {
+  const group = new THREE.Group();
+
+  CONSTELLATION_GUIDES.forEach((config) => {
+    group.add(createConstellationGuide(config, theme, disposables));
   });
 
   return group;
@@ -186,6 +475,7 @@ function createGalaxyBackground({
   disposables: Disposable[];
 }): GalaxyBackground {
   const nebulae = createNebulae({ theme, loader, disposables });
+  const constellationGuide = createConstellationGuides(theme, disposables);
 
   const distantStars = createGalaxyPoints({
     count: 1200,
@@ -226,8 +516,8 @@ function createGalaxyBackground({
   distantStars.renderOrder = -3;
   galaxyDisk.renderOrder = -2;
   galaxyArms.renderOrder = -1;
-  scene.add(nebulae, distantStars, galaxyDisk, galaxyArms);
-  return { distantStars, galaxyDisk, galaxyArms, nebulae };
+  scene.add(nebulae, constellationGuide, distantStars, galaxyDisk, galaxyArms);
+  return { distantStars, galaxyDisk, galaxyArms, nebulae, constellationGuide };
 }
 
 function createMaterial({
@@ -492,16 +782,18 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
     mount.appendChild(renderer.domElement);
 
     const ambientLight = new THREE.AmbientLight(
-      theme === "night" ? 0x8ba4ff : 0xffffff, // 环境光颜色：影响全场基础亮度，夜间偏蓝，白天偏白。
-      theme === "night" ? 0.75 : 1.2, // 环境光强度：数值越大，星球暗面越亮；降低可增强明暗对比。
+      theme === "night" ? 0x6f86d8 : 0xfff4dc, // 环境光颜色：影响全场基础亮度，夜间偏蓝，白天偏白。
+      theme === "night" ? 0.48 : 0.72, // 环境光强度：数值越大，星球暗面越亮；降低可增强明暗对比。
     );
     const sunLight = new THREE.PointLight(
       0xffd36f, // 太阳点光源颜色：越偏黄/橙，太阳照明越暖。
-      theme === "night" ? 38.5 : 34.2, // 太阳点光源强度：数值越大，太阳周围和行星受光越亮。
-      140, // 太阳点光源照射距离：数值越大，外层行星也会受到更明显照亮。
+      theme === "night" ? 68 : 56, // 太阳点光源强度：数值越大，太阳周围和行星受光越亮。
+      260, // 太阳点光源照射距离：数值越大，外层行星也会受到更明显照亮。
+      0.58,
     );
     sunLight.position.set(0, 0, 0); // 太阳光源位置：保持在中心，与太阳模型重合。
-    scene.add(ambientLight, sunLight);
+    const selectedFillLight = new THREE.PointLight(theme === "night" ? 0xfff1cf : 0xffffff, 0, 7.6, 0.8);
+    scene.add(ambientLight, sunLight, selectedFillLight);
 
     const loader = new THREE.TextureLoader();
     const raycaster = new THREE.Raycaster();
@@ -732,7 +1024,7 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
         const isSelected = planet.name === selectedNameRef.current;
         const isHovered = hoveredMesh === mesh;
         updateSelectedLighting(mesh, isSelected);
-        const targetScale = isSelected ? baseScale * 1.28 : isHovered ? baseScale * 1.16 : baseScale;
+        const targetScale = isSelected ? baseScale * 1.5 : isHovered ? baseScale * 1.16 : baseScale;
         mesh.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.12);
       });
 
@@ -744,11 +1036,15 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
 
       if (selectedObject) {
         selectedObject.mesh.getWorldPosition(focusTarget);
-        cameraTarget.copy(focusTarget).multiplyScalar(0.55);
+        cameraTarget.copy(focusTarget).multiplyScalar(0.78);
         nextLookTarget.copy(focusTarget);
+        selectedFillLight.position.copy(focusTarget);
+        selectedFillLight.intensity = THREE.MathUtils.lerp(selectedFillLight.intensity, theme === "night" ? 7.8 : 6.2, 0.12);
+        zoomState.target = zoomState.min;
       } else {
         cameraTarget.set(0, 0, 0);
         nextLookTarget.set(0, 0, 0);
+        selectedFillLight.intensity = THREE.MathUtils.lerp(selectedFillLight.intensity, 0, 0.18);
       }
       cameraRig.position.lerp(cameraTarget.multiplyScalar(-1), 0.07);
       lookTarget.lerp(nextLookTarget, 0.1);
@@ -761,6 +1057,7 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
       galaxyBackground.galaxyDisk.rotation.y += 0.0018 * delta * motionFactor;
       galaxyBackground.galaxyArms.rotation.y -= 0.0012 * delta * motionFactor;
       galaxyBackground.nebulae.rotation.y += 0.0009 * delta * motionFactor;
+      galaxyBackground.constellationGuide.rotation.y += 0.00035 * delta * motionFactor;
       renderer.render(scene, camera);
       frame = window.requestAnimationFrame(animate);
     };
