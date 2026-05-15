@@ -8,6 +8,18 @@ export type PlanetRing = {
   tilt: number;
 };
 
+export type PlanetSatellite = {
+  name: string;
+  radiusRatio: number;
+  orbitRadiusRatio: number;
+  orbitSpeed: number;
+  rotationSpeed: number;
+  texturePath: string;
+  color: string;
+  phase: number;
+  tilt?: number;
+};
+
 export type Planet = {
   name: string;
   realRadiusKm: number;
@@ -22,4 +34,5 @@ export type Planet = {
   texturePath: string;
   description: string;
   ring?: PlanetRing;
+  satellites?: PlanetSatellite[];
 };

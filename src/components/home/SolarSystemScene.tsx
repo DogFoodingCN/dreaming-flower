@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import type { Planet, Theme } from "./types";
+import type { Planet, PlanetSatellite, Theme } from "./types";
 
 type SolarSystemSceneProps = {
   selectedName: string | null;
@@ -22,6 +22,13 @@ type SceneObject = {
   orbitPhase: number;
 };
 
+type SatelliteObject = {
+  satellite: PlanetSatellite;
+  mesh: THREE.Mesh;
+  orbitPhase: number;
+  orbitRadius: number;
+};
+
 type DragMode = "camera" | "orbit" | "pinch" | null;
 
 type DragState = {
@@ -37,13 +44,52 @@ type DragState = {
   rotationY: number;
 };
 
-const GALAXY_BACKGROUND_TEXTURE_PATH = "/textures/solar-system/stars_milky_way.jpg";
+const NEBULA_TEXTURES = [
+  {
+    path: "/textures/nebulae/orion.jpg",
+    position: new THREE.Vector3(-15, 5.8, -26),
+    scale: [8.4, 5.2] as const,
+    rotation: -0.18,
+  },
+  {
+    path: "/textures/nebulae/eagle.jpg",
+    position: new THREE.Vector3(14, -1.4, -29),
+    scale: [9.2, 5.6] as const,
+    rotation: 0.22,
+  },
+  {
+    path: "/textures/nebulae/carina.jpg",
+    position: new THREE.Vector3(4, 7.8, -32),
+    scale: [10.4, 6.2] as const,
+    rotation: 0.08,
+  },
+];
+const DEFAULT_PLANET_EMISSIVE = new THREE.Color("#08040f");
+const SELECTED_PLANET_EMISSIVE = new THREE.Color("#fff2c6");
+const DEFAULT_PLANET_EMISSIVE_INTENSITY = 0.03;
+const SELECTED_PLANET_EMISSIVE_INTENSITY = 1.85;
+const SELECTED_PLANET_LIGHTING_SPEED = 0.28;
 
 type GalaxyBackground = {
   distantStars: THREE.Points;
   galaxyDisk: THREE.Points;
   galaxyArms: THREE.Points;
+  nebulae: THREE.Group;
 };
+
+function updateSelectedLighting(mesh: THREE.Mesh, isSelected: boolean) {
+  if (!(mesh.material instanceof THREE.MeshStandardMaterial)) {
+    return;
+  }
+
+  const speed = isSelected ? SELECTED_PLANET_LIGHTING_SPEED : 0.12;
+  mesh.material.emissive.lerp(isSelected ? SELECTED_PLANET_EMISSIVE : DEFAULT_PLANET_EMISSIVE, speed);
+  mesh.material.emissiveIntensity = THREE.MathUtils.lerp(
+    mesh.material.emissiveIntensity,
+    isSelected ? SELECTED_PLANET_EMISSIVE_INTENSITY : DEFAULT_PLANET_EMISSIVE_INTENSITY,
+    speed,
+  );
+}
 
 function createGalaxyPoints({
   count,
@@ -82,6 +128,52 @@ function createGalaxyPoints({
   return points;
 }
 
+function createNebulae({
+  theme,
+  loader,
+  disposables,
+}: {
+  theme: Theme;
+  loader: THREE.TextureLoader;
+  disposables: Disposable[];
+}) {
+  const group = new THREE.Group();
+  const opacity = theme === "night" ? 0.32 : 0.12;
+
+  NEBULA_TEXTURES.forEach(({ path, position, scale, rotation }) => {
+    const geometry = new THREE.PlaneGeometry(scale[0], scale[1]);
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity,
+      depthWrite: false,
+      depthTest: false,
+      side: THREE.DoubleSide,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.copy(position);
+    mesh.rotation.z = rotation;
+    mesh.renderOrder = -4;
+    group.add(mesh);
+    disposables.push(geometry, material);
+
+    loader.load(
+      path,
+      (texture) => {
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.anisotropy = 4;
+        material.map = texture;
+        material.needsUpdate = true;
+        disposables.push(texture);
+      },
+      undefined,
+      () => undefined,
+    );
+  });
+
+  return group;
+}
+
 function createGalaxyBackground({
   scene,
   theme,
@@ -93,16 +185,7 @@ function createGalaxyBackground({
   loader: THREE.TextureLoader;
   disposables: Disposable[];
 }): GalaxyBackground {
-  loader.load(
-    GALAXY_BACKGROUND_TEXTURE_PATH,
-    (texture) => {
-      texture.colorSpace = THREE.SRGBColorSpace;
-      scene.background = texture;
-      disposables.push(texture);
-    },
-    undefined,
-    () => undefined,
-  );
+  const nebulae = createNebulae({ theme, loader, disposables });
 
   const distantStars = createGalaxyPoints({
     count: 1200,
@@ -143,8 +226,8 @@ function createGalaxyBackground({
   distantStars.renderOrder = -3;
   galaxyDisk.renderOrder = -2;
   galaxyArms.renderOrder = -1;
-  scene.add(distantStars, galaxyDisk, galaxyArms);
-  return { distantStars, galaxyDisk, galaxyArms };
+  scene.add(nebulae, distantStars, galaxyDisk, galaxyArms);
+  return { distantStars, galaxyDisk, galaxyArms, nebulae };
 }
 
 function createMaterial({
@@ -154,7 +237,7 @@ function createMaterial({
   renderer,
   disposables,
 }: {
-  planet: Planet;
+  planet: Pick<Planet, "color" | "texturePath">;
   emissive?: boolean;
   loader: THREE.TextureLoader;
   renderer: THREE.WebGLRenderer;
@@ -164,14 +247,14 @@ function createMaterial({
     ? new THREE.MeshBasicMaterial({
         color: planet.color,
       })
-    : new THREE.MeshStandardMaterial({
-        color: planet.color,
-        emissive: "#08040f",
-        emissiveIntensity: 0.03,
-        roughness: 0.58,
-        metalness: 0.02,
-        toneMapped: false,
-      });
+      : new THREE.MeshStandardMaterial({
+          color: planet.color,
+          emissive: DEFAULT_PLANET_EMISSIVE,
+          emissiveIntensity: DEFAULT_PLANET_EMISSIVE_INTENSITY,
+          roughness: 0.58,
+          metalness: 0.02,
+          toneMapped: false,
+        });
 
   if (planet.texturePath) {
     loader.load(
@@ -254,6 +337,73 @@ function createRing(planet: Planet, mesh: THREE.Mesh, disposables: Disposable[])
   disposables.push(ringGeometry, ringMaterial);
 }
 
+function createSatelliteMesh({
+  satellite,
+  radius,
+  loader,
+  renderer,
+  disposables,
+}: {
+  satellite: PlanetSatellite;
+  radius: number;
+  loader: THREE.TextureLoader;
+  renderer: THREE.WebGLRenderer;
+  disposables: Disposable[];
+}) {
+  const geometry = new THREE.SphereGeometry(radius, 24, 16);
+  const mesh = new THREE.Mesh(
+    geometry,
+    createMaterial({
+      planet: satellite,
+      loader,
+      renderer,
+      disposables,
+    }),
+  );
+  disposables.push(geometry);
+  return mesh;
+}
+
+function createSatellites({
+  planet,
+  parentMesh,
+  loader,
+  renderer,
+  disposables,
+  satellites,
+}: {
+  planet: Planet;
+  parentMesh: THREE.Mesh;
+  loader: THREE.TextureLoader;
+  renderer: THREE.WebGLRenderer;
+  disposables: Disposable[];
+  satellites: SatelliteObject[];
+}) {
+  planet.satellites?.forEach((satellite) => {
+    const orbitRadius = planet.radius * satellite.orbitRadiusRatio;
+    const mesh = createSatelliteMesh({
+      satellite,
+      radius: planet.radius * satellite.radiusRatio,
+      loader,
+      renderer,
+      disposables,
+    });
+    parentMesh.add(mesh);
+    const satelliteObject = { satellite, mesh, orbitPhase: satellite.phase, orbitRadius };
+    updateSatellitePosition(satelliteObject);
+    satellites.push(satelliteObject);
+  });
+}
+
+function updateSatellitePosition(object: SatelliteObject) {
+  const tilt = object.satellite.tilt ?? 0;
+  object.mesh.position.set(
+    Math.cos(object.orbitPhase) * object.orbitRadius,
+    Math.sin(tilt) * Math.sin(object.orbitPhase) * object.orbitRadius * 0.38,
+    Math.sin(object.orbitPhase) * object.orbitRadius * Math.cos(tilt),
+  );
+}
+
 function getSteppedOrbitPhase(planet: Planet, index: number, total: number) {
   let hash = 0;
   for (const char of planet.name) {
@@ -275,6 +425,7 @@ function createOrbitingPlanet({
   disposables,
   selectableMeshes,
   objects,
+  satellites,
 }: {
   planet: Planet;
   orbitPhase: number;
@@ -285,6 +436,7 @@ function createOrbitingPlanet({
   disposables: Disposable[];
   selectableMeshes: THREE.Mesh[];
   objects: SceneObject[];
+  satellites: SatelliteObject[];
 }) {
   createOrbit(planet, theme, scene, disposables);
 
@@ -304,6 +456,7 @@ function createOrbitingPlanet({
   selectableMeshes.push(mesh);
   objects.push({ planet, pivot, mesh, baseScale: 1, orbitPhase });
   createRing(planet, mesh, disposables);
+  createSatellites({ planet, parentMesh: mesh, loader, renderer, disposables, satellites });
 }
 
 export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }: SolarSystemSceneProps) {
@@ -356,6 +509,7 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
     const selectableMeshes: THREE.Mesh[] = [];
     const disposables: Disposable[] = [];
     const objects: SceneObject[] = [];
+    const satellites: SatelliteObject[] = [];
     const focusTarget = new THREE.Vector3(0, 0, 0);
     const cameraTarget = new THREE.Vector3(0, 0, 0);
     const lookTarget = new THREE.Vector3(0, 0, 0);
@@ -420,6 +574,7 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
         disposables,
         selectableMeshes,
         objects,
+        satellites,
       });
     });
 
@@ -576,8 +731,15 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
         mesh.rotation.y += planet.rotationSpeed * delta * motionFactor;
         const isSelected = planet.name === selectedNameRef.current;
         const isHovered = hoveredMesh === mesh;
+        updateSelectedLighting(mesh, isSelected);
         const targetScale = isSelected ? baseScale * 1.28 : isHovered ? baseScale * 1.16 : baseScale;
         mesh.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.12);
+      });
+
+      satellites.forEach((object) => {
+        object.orbitPhase += object.satellite.orbitSpeed * delta * motionFactor;
+        updateSatellitePosition(object);
+        object.mesh.rotation.y += object.satellite.rotationSpeed * delta * motionFactor;
       });
 
       if (selectedObject) {
@@ -598,6 +760,7 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
       galaxyBackground.distantStars.rotation.y += 0.003 * delta * motionFactor;
       galaxyBackground.galaxyDisk.rotation.y += 0.0018 * delta * motionFactor;
       galaxyBackground.galaxyArms.rotation.y -= 0.0012 * delta * motionFactor;
+      galaxyBackground.nebulae.rotation.y += 0.0009 * delta * motionFactor;
       renderer.render(scene, camera);
       frame = window.requestAnimationFrame(animate);
     };
