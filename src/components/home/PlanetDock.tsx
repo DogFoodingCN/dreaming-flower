@@ -3,25 +3,29 @@ import type { Planet } from "./types";
 
 type PlanetDockProps = {
   objects: Planet[];
-  selectedName: string;
-  onSelect: (planet: Planet) => void;
+  selectedName: string | null;
+  onSelect: (planet: Planet | null) => void;
 };
 
 export function PlanetDock({ objects, selectedName, onSelect }: PlanetDockProps) {
   return (
     <nav className="planet-dock" aria-label="Solar system objects">
-      {objects.map((planet) => (
-        <button
-          key={planet.name}
-          type="button"
-          className={planet.name === selectedName ? "planet-chip planet-chip--active" : "planet-chip"}
-          onClick={() => onSelect(planet)}
-          style={{ "--planet-color": planet.color } as CSSProperties}
-        >
-          <span />
-          {planet.name}
-        </button>
-      ))}
+      {objects.map((planet) => {
+        const isSelected = planet.name === selectedName;
+
+        return (
+          <button
+            key={planet.name}
+            type="button"
+            className={isSelected ? "planet-chip planet-chip--active" : "planet-chip"}
+            onClick={() => onSelect(isSelected ? null : planet)}
+            style={{ "--planet-color": planet.color } as CSSProperties}
+          >
+            <span />
+            {planet.name}
+          </button>
+        );
+      })}
     </nav>
   );
 }

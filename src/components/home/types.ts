@@ -10,6 +10,10 @@ export type PlanetRing = {
 
 export type Planet = {
   name: string;
+  realRadiusKm: number;
+  realOrbitMillionKm: number;
+  radiusScale: number;
+  orbitScale: number;
   radius: number;
   orbitRadius: number;
   orbitSpeed: number;

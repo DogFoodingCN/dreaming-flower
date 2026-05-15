@@ -5,11 +5,11 @@ import * as THREE from "three";
 import type { Planet, Theme } from "./types";
 
 type SolarSystemSceneProps = {
-  selectedName: string;
+  selectedName: string | null;
   theme: Theme;
   sun: Planet;
   planets: Planet[];
-  onSelect: (planet: Planet) => void;
+  onSelect: (planet: Planet | null) => void;
 };
 
 type Disposable = THREE.BufferGeometry | THREE.Material | THREE.Texture;
@@ -19,11 +19,15 @@ type SceneObject = {
   pivot: THREE.Object3D;
   mesh: THREE.Mesh;
   baseScale: number;
+  orbitPhase: number;
 };
+
+type DragMode = "camera" | "orbit" | "pinch" | null;
 
 type DragState = {
   active: boolean;
   moved: boolean;
+  mode: DragMode;
   pointerId: number | null;
   startX: number;
   startY: number;
@@ -32,6 +36,116 @@ type DragState = {
   rotationX: number;
   rotationY: number;
 };
+
+const GALAXY_BACKGROUND_TEXTURE_PATH = "/textures/solar-system/stars_milky_way.jpg";
+
+type GalaxyBackground = {
+  distantStars: THREE.Points;
+  galaxyDisk: THREE.Points;
+  galaxyArms: THREE.Points;
+};
+
+function createGalaxyPoints({
+  count,
+  color,
+  size,
+  opacity,
+  getPosition,
+  disposables,
+}: {
+  count: number;
+  color: number;
+  size: number;
+  opacity: number;
+  getPosition: (index: number) => [number, number, number];
+  disposables: Disposable[];
+}) {
+  const positions = new Float32Array(count * 3);
+  for (let index = 0; index < count; index += 1) {
+    const [x, y, z] = getPosition(index);
+    positions[index * 3] = x;
+    positions[index * 3 + 1] = y;
+    positions[index * 3 + 2] = z;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  const material = new THREE.PointsMaterial({
+    color,
+    size,
+    transparent: true,
+    opacity,
+    depthWrite: false,
+  });
+  const points = new THREE.Points(geometry, material);
+  disposables.push(geometry, material);
+  return points;
+}
+
+function createGalaxyBackground({
+  scene,
+  theme,
+  loader,
+  disposables,
+}: {
+  scene: THREE.Scene;
+  theme: Theme;
+  loader: THREE.TextureLoader;
+  disposables: Disposable[];
+}): GalaxyBackground {
+  loader.load(
+    GALAXY_BACKGROUND_TEXTURE_PATH,
+    (texture) => {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      scene.background = texture;
+      disposables.push(texture);
+    },
+    undefined,
+    () => undefined,
+  );
+
+  const distantStars = createGalaxyPoints({
+    count: 1200,
+    color: theme === "night" ? 0xffffff : 0x4d6498,
+    size: theme === "night" ? 0.038 : 0.026,
+    opacity: theme === "night" ? 0.9 : 0.46,
+    disposables,
+    getPosition: () => [(Math.random() - 0.5) * 54, (Math.random() - 0.5) * 30, (Math.random() - 0.5) * 46],
+  });
+
+  const galaxyDisk = createGalaxyPoints({
+    count: 920,
+    color: theme === "night" ? 0x9bb7ff : 0x5b75b7,
+    size: theme === "night" ? 0.032 : 0.023,
+    opacity: theme === "night" ? 0.5 : 0.28,
+    disposables,
+    getPosition: () => {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 4 + Math.random() * 16;
+      return [Math.cos(angle) * radius, (Math.random() - 0.5) * 1.8, Math.sin(angle) * radius * 0.42 - 10];
+    },
+  });
+
+  const galaxyArms = createGalaxyPoints({
+    count: 720,
+    color: theme === "night" ? 0xf6d6ff : 0x7d6aa8,
+    size: theme === "night" ? 0.034 : 0.024,
+    opacity: theme === "night" ? 0.58 : 0.3,
+    disposables,
+    getPosition: (index) => {
+      const arm = index % 2 === 0 ? 0 : Math.PI;
+      const radius = 2 + Math.random() * 17;
+      const angle = arm + radius * 0.38 + (Math.random() - 0.5) * 0.8;
+      return [Math.cos(angle) * radius, (Math.random() - 0.5) * 1.2, Math.sin(angle) * radius * 0.5 - 9];
+    },
+  });
+
+  distantStars.renderOrder = -3;
+  galaxyDisk.renderOrder = -2;
+  galaxyArms.renderOrder = -1;
+  scene.add(distantStars, galaxyDisk, galaxyArms);
+  return { distantStars, galaxyDisk, galaxyArms };
+}
 
 function createMaterial({
   planet,
@@ -140,9 +254,20 @@ function createRing(planet: Planet, mesh: THREE.Mesh, disposables: Disposable[])
   disposables.push(ringGeometry, ringMaterial);
 }
 
+function getSteppedOrbitPhase(planet: Planet, index: number, total: number) {
+  let hash = 0;
+  for (const char of planet.name) {
+    hash = (hash * 31 + char.charCodeAt(0)) % 997;
+  }
+
+  const step = total > 0 ? (index / total) * Math.PI * 2 : 0;
+  const jitter = ((hash % 37) / 37 - 0.5) * 0.48;
+  return step + jitter;
+}
+
 function createOrbitingPlanet({
   planet,
-  index,
+  orbitPhase,
   theme,
   scene,
   loader,
@@ -152,7 +277,7 @@ function createOrbitingPlanet({
   objects,
 }: {
   planet: Planet;
-  index: number;
+  orbitPhase: number;
   theme: Theme;
   scene: THREE.Scene;
   loader: THREE.TextureLoader;
@@ -164,7 +289,6 @@ function createOrbitingPlanet({
   createOrbit(planet, theme, scene, disposables);
 
   const pivot = new THREE.Group();
-  pivot.rotation.y = index * 0.62;
   scene.add(pivot);
 
   const mesh = createPlanetMesh({
@@ -174,11 +298,11 @@ function createOrbitingPlanet({
     heightSegments: 28,
     disposables,
   });
-  mesh.position.x = planet.orbitRadius;
+  mesh.position.set(Math.cos(orbitPhase) * planet.orbitRadius, 0, Math.sin(orbitPhase) * planet.orbitRadius * 0.62);
   mesh.scale.y = 0.98;
   pivot.add(mesh);
   selectableMeshes.push(mesh);
-  objects.push({ planet, pivot, mesh, baseScale: 1 });
+  objects.push({ planet, pivot, mesh, baseScale: 1, orbitPhase });
   createRing(planet, mesh, disposables);
 }
 
@@ -232,9 +356,24 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
     const selectableMeshes: THREE.Mesh[] = [];
     const disposables: Disposable[] = [];
     const objects: SceneObject[] = [];
+    const focusTarget = new THREE.Vector3(0, 0, 0);
+    const cameraTarget = new THREE.Vector3(0, 0, 0);
+    const lookTarget = new THREE.Vector3(0, 0, 0);
+    const nextLookTarget = new THREE.Vector3(0, 0, 0);
+    const zoomState = {
+      current: 10.8,
+      target: 10.8,
+      min: 5.8,
+      max: 22,
+    };
+    const activePointers = new Map<number, PointerEvent>();
+    let pinchStartDistance = 0;
+    let pinchStartZoom = zoomState.target;
+    let orbitDragOffset = 0;
     const dragState: DragState = {
       active: false,
       moved: false,
+      mode: null,
       pointerId: null,
       startX: 0,
       startY: 0,
@@ -253,7 +392,7 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
     });
     scene.add(sunMesh);
     selectableMeshes.push(sunMesh);
-    objects.push({ planet: sun, pivot: scene, mesh: sunMesh, baseScale: 1 });
+    objects.push({ planet: sun, pivot: scene, mesh: sunMesh, baseScale: 1, orbitPhase: 0 });
 
     const sunGlow = new THREE.Mesh(
       new THREE.SphereGeometry(
@@ -268,10 +407,12 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
       }),
     );
 
+    const galaxyBackground = createGalaxyBackground({ scene, theme, loader, disposables });
+
     planets.forEach((planet, index) => {
       createOrbitingPlanet({
         planet,
-        index,
+        orbitPhase: getSteppedOrbitPhase(planet, index, planets.length),
         theme,
         scene,
         loader,
@@ -282,25 +423,6 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
       });
     });
 
-    const starCount = 920;
-    const starPositions = new Float32Array(starCount * 3);
-    for (let index = 0; index < starCount; index += 1) {
-      starPositions[index * 3] = (Math.random() - 0.5) * 42;
-      starPositions[index * 3 + 1] = (Math.random() - 0.5) * 24;
-      starPositions[index * 3 + 2] = (Math.random() - 0.5) * 36;
-    }
-    const starGeometry = new THREE.BufferGeometry();
-    starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
-    const starMaterial = new THREE.PointsMaterial({
-      color: theme === "night" ? 0xffffff : 0x39558f,
-      size: theme === "night" ? 0.045 : 0.03,
-      transparent: true,
-      opacity: theme === "night" ? 0.92 : 0.54,
-    });
-    const stars = new THREE.Points(starGeometry, starMaterial);
-    scene.add(stars);
-    disposables.push(starGeometry, starMaterial);
-
     let frame = 0;
     let hoveredMesh: THREE.Mesh | null = null;
     const clock = new THREE.Clock();
@@ -309,10 +431,12 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
       const rect = mount.getBoundingClientRect();
       const width = Math.max(rect.width, 1);
       const height = Math.max(rect.height, 1);
+      const defaultZoom = width < 720 ? 16 : 12.5;
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
-      camera.position.z = width < 720 ? 14 : 10.8;
-      camera.position.y = width < 720 ? 8.5 : 7.2;
+      zoomState.current = THREE.MathUtils.clamp(zoomState.current || defaultZoom, zoomState.min, zoomState.max);
+      zoomState.target = THREE.MathUtils.clamp(zoomState.target || defaultZoom, zoomState.min, zoomState.max);
+      camera.position.y = width < 720 ? 9 : 7.6;
       camera.updateProjectionMatrix();
     };
 
@@ -322,6 +446,20 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
       pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(pointer, camera);
       return raycaster.intersectObjects(selectableMeshes, true)[0];
+    };
+
+    const getPointerDistance = () => {
+      const pointers = [...activePointers.values()];
+      if (pointers.length < 2) {
+        return 0;
+      }
+
+      return Math.hypot(pointers[0].clientX - pointers[1].clientX, pointers[0].clientY - pointers[1].clientY);
+    };
+
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      zoomState.target = THREE.MathUtils.clamp(zoomState.target + event.deltaY * 0.008, zoomState.min, zoomState.max);
     };
 
     const updateDragRotation = (event: PointerEvent) => {
@@ -334,6 +472,11 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
         dragState.moved = true;
       }
 
+      if (dragState.mode === "orbit") {
+        orbitDragOffset += deltaX * 0.01;
+        return;
+      }
+
       dragState.rotationY += deltaX * 0.006;
       dragState.rotationX = THREE.MathUtils.clamp(dragState.rotationX + deltaY * 0.0035, -0.55, 0.55);
       cameraRig.rotation.y = dragState.rotationY;
@@ -341,7 +484,19 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
     };
 
     const handlePointerMove = (event: PointerEvent) => {
+      if (activePointers.has(event.pointerId)) {
+        activePointers.set(event.pointerId, event);
+      }
+
       if (dragState.active && dragState.pointerId === event.pointerId) {
+        if (dragState.mode === "pinch") {
+          const distance = getPointerDistance();
+          if (distance > 0 && pinchStartDistance > 0) {
+            zoomState.target = THREE.MathUtils.clamp(pinchStartZoom * (pinchStartDistance / distance), zoomState.min, zoomState.max);
+          }
+          return;
+        }
+
         updateDragRotation(event);
         renderer.domElement.style.cursor = "grabbing";
         return;
@@ -352,52 +507,72 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
       renderer.domElement.style.cursor = hoveredMesh ? "pointer" : "grab";
     };
 
-    const handlePointerLeave = () => {
+    const handlePointerLeave = (event: PointerEvent) => {
+      activePointers.delete(event.pointerId);
       dragState.active = false;
+      dragState.mode = null;
       dragState.pointerId = null;
       hoveredMesh = null;
       renderer.domElement.style.cursor = "grab";
     };
 
     const handlePointerDown = (event: PointerEvent) => {
+      activePointers.set(event.pointerId, event);
+      const intersect = getIntersect(event);
+      const planet = intersect?.object.userData.planet as Planet | undefined;
       dragState.active = true;
       dragState.moved = false;
+      dragState.mode = planet && planet.orbitRadius > 0 ? "orbit" : "camera";
       dragState.pointerId = event.pointerId;
       dragState.startX = event.clientX;
       dragState.startY = event.clientY;
       dragState.lastX = event.clientX;
       dragState.lastY = event.clientY;
+
+      if (activePointers.size >= 2) {
+        dragState.mode = "pinch";
+        pinchStartDistance = getPointerDistance();
+        pinchStartZoom = zoomState.target;
+      }
+
       renderer.domElement.setPointerCapture(event.pointerId);
       renderer.domElement.style.cursor = "grabbing";
     };
 
     const handlePointerUp = (event: PointerEvent) => {
+      activePointers.delete(event.pointerId);
       if (dragState.pointerId !== event.pointerId) {
         return;
       }
 
+      const wasPinching = dragState.mode === "pinch";
       dragState.active = false;
+      dragState.mode = null;
       dragState.pointerId = null;
       renderer.domElement.releasePointerCapture(event.pointerId);
       renderer.domElement.style.cursor = "grab";
 
-      if (dragState.moved) {
+      if (dragState.moved || wasPinching) {
         return;
       }
 
       const intersect = getIntersect(event);
       const planet = intersect?.object.userData.planet as Planet | undefined;
-      if (planet) {
-        onSelectRef.current(planet);
-      }
+      onSelectRef.current(planet ?? null);
     };
 
     const animate = () => {
       const delta = Math.min(clock.getDelta(), 0.04);
       const motionFactor = reducedMotion ? 0.08 : 1;
+      const selectedObject = objects.find(({ planet }) => planet.name === selectedNameRef.current);
 
-      objects.forEach(({ planet, pivot, mesh, baseScale }) => {
-        pivot.rotation.y += planet.orbitSpeed * delta * motionFactor;
+      objects.forEach((object) => {
+        const { planet, mesh, baseScale } = object;
+        if (planet.orbitRadius > 0) {
+          object.orbitPhase += planet.orbitSpeed * delta * motionFactor;
+          const phase = object.orbitPhase + orbitDragOffset;
+          mesh.position.set(Math.cos(phase) * planet.orbitRadius, 0, Math.sin(phase) * planet.orbitRadius * 0.62);
+        }
         mesh.rotation.y += planet.rotationSpeed * delta * motionFactor;
         const isSelected = planet.name === selectedNameRef.current;
         const isHovered = hoveredMesh === mesh;
@@ -405,8 +580,24 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
         mesh.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.12);
       });
 
+      if (selectedObject) {
+        selectedObject.mesh.getWorldPosition(focusTarget);
+        cameraTarget.copy(focusTarget).multiplyScalar(0.55);
+        nextLookTarget.copy(focusTarget);
+      } else {
+        cameraTarget.set(0, 0, 0);
+        nextLookTarget.set(0, 0, 0);
+      }
+      cameraRig.position.lerp(cameraTarget.multiplyScalar(-1), 0.07);
+      lookTarget.lerp(nextLookTarget, 0.1);
+      camera.lookAt(lookTarget);
+      zoomState.current = THREE.MathUtils.lerp(zoomState.current, zoomState.target, 0.12);
+      camera.position.z = zoomState.current;
+
       sunGlow.rotation.y += 0.05 * delta * motionFactor; // 太阳光晕自转速度：数值越大，光晕视觉旋转越快。
-      stars.rotation.y += 0.004 * delta * motionFactor;
+      galaxyBackground.distantStars.rotation.y += 0.003 * delta * motionFactor;
+      galaxyBackground.galaxyDisk.rotation.y += 0.0018 * delta * motionFactor;
+      galaxyBackground.galaxyArms.rotation.y -= 0.0012 * delta * motionFactor;
       renderer.render(scene, camera);
       frame = window.requestAnimationFrame(animate);
     };
@@ -415,6 +606,7 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
     animate();
 
     window.addEventListener("resize", resize);
+    renderer.domElement.addEventListener("wheel", handleWheel, { passive: false });
     renderer.domElement.addEventListener("pointermove", handlePointerMove);
     renderer.domElement.addEventListener("pointerleave", handlePointerLeave);
     renderer.domElement.addEventListener("pointerdown", handlePointerDown);
@@ -424,6 +616,7 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
     return () => {
       window.cancelAnimationFrame(frame);
       window.removeEventListener("resize", resize);
+      renderer.domElement.removeEventListener("wheel", handleWheel);
       renderer.domElement.removeEventListener("pointermove", handlePointerMove);
       renderer.domElement.removeEventListener("pointerleave", handlePointerLeave);
       renderer.domElement.removeEventListener("pointerdown", handlePointerDown);

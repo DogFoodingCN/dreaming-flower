@@ -10,13 +10,14 @@ import type { Planet, Theme } from "@/components/home/types";
 
 export default function Home() {
   const [theme, setTheme] = useState<Theme>("night");
-  const [selectedPlanet, setSelectedPlanet] = useState<Planet>(sun);
+  const [selectedPlanet, setSelectedPlanet] = useState<Planet | null>(null);
   const objects = useMemo(() => solarSystemObjects, []);
+  const selectedName = selectedPlanet?.name ?? null;
 
   return (
     <main className={`solar-page solar-page--${theme}`}>
       <SolarSystemScene
-        selectedName={selectedPlanet.name}
+        selectedName={selectedName}
         theme={theme}
         sun={sun}
         planets={planets}
@@ -24,7 +25,7 @@ export default function Home() {
       />
       <HomeOverlay theme={theme} onToggleTheme={() => setTheme((currentTheme) => (currentTheme === "night" ? "day" : "night"))} />
       <PlanetPanel planet={selectedPlanet} />
-      <PlanetDock objects={objects} selectedName={selectedPlanet.name} onSelect={setSelectedPlanet} />
+      <PlanetDock objects={objects} selectedName={selectedName} onSelect={setSelectedPlanet} />
     </main>
   );
 }
