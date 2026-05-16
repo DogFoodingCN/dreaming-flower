@@ -10,6 +10,15 @@ type PlanetDockProps = {
 export function PlanetDock({ objects, selectedName, onSelect }: PlanetDockProps) {
   return (
     <nav className="planet-dock" aria-label="Solar system objects">
+      <button
+        type="button"
+        className={selectedName === null ? "planet-chip planet-chip--active" : "planet-chip"}
+        onClick={() => onSelect(null)}
+        style={{ "--planet-color": "#9fb5ff" } as CSSProperties}
+      >
+        <span />
+        远景
+      </button>
       {objects.map((planet) => {
         const isSelected = planet.name === selectedName;
 

@@ -15,20 +15,6 @@ export function HomeOverlay({ theme, onToggleTheme }: HomeOverlayProps) {
           <h1>繁花盛景</h1>
         </div>
         <p className="solar-kicker">Independent Developer · Product Lab</p>
-        <p className="solar-intro">
-          From the solar system,
-          <br />
-          looking toward other galaxies.
-        </p>
-        <div className="solar-cta-row" aria-label="Primary links">
-          <a className="solar-cta solar-cta--primary" href="#planet-dock">
-            Explore the Solar System
-            <span aria-hidden="true">→</span>
-          </a>
-          <a className="solar-cta solar-cta--secondary" href="#planet-dock">
-            View Latest Posts
-          </a>
-        </div>
       </div>
 
       <button
