@@ -5,13 +5,12 @@ import { SiteChrome } from "@/components/site/SiteChrome";
 import { useSiteTheme } from "@/components/site/SiteThemeProvider";
 
 type BlogShellProps = {
-  eyebrow?: string;
   title: string;
   description: string;
   children: ReactNode;
 };
 
-export function BlogShell({ eyebrow = "Dreaming Flower Blog", children }: BlogShellProps) {
+export function BlogShell({ children }: BlogShellProps) {
   const { theme, toggleTheme } = useSiteTheme();
 
   return (

@@ -37,7 +37,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   }
 
   return (
-    <BlogShell title={post.title} description={post.description} eyebrow="Dreaming Flower Note">
+    <BlogShell title={post.title} description={post.description}>
       <article className="blog-article" style={{ "--blog-accent": post.themeAccent } as CSSProperties}>
         <Link className="blog-back-link" href="/blog">返回博客列表</Link>
         <time dateTime={post.date}>{post.date}</time>
