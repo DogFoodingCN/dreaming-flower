@@ -2,9 +2,9 @@
 
 ## MVP Goal
 
-The current MVP only implements the homepage.
+The current MVP implements the galaxy-style homepage and the first lightweight blog module.
 
-The homepage should act as the galaxy entrance for Dreaming Flower and introduce the future structure of the site without implementing those modules yet.
+The homepage should act as the galaxy entrance for Dreaming Flower and introduce the site structure. The blog module provides static MDX-based writing output without introducing CMS, database, accounts, or other full platform features.
 
 ## In Scope
 
@@ -15,17 +15,20 @@ The homepage should act as the galaxy entrance for Dreaming Flower and introduce
 - Basic interaction for future module entries
 - Day and night mode switching
 - Future modules represented as non-final entry points
+- Static MDX blog list and detail pages
+- Blog pages that match the homepage galaxy/glass visual system
+- Day and night mode switching for blog pages
 
 ## Out of Scope
 
-- Blog list and blog detail pages
 - Product detail pages
 - Authentication
 - Admin dashboard
 - CMS integration
 - Database persistence
 - Comments, subscriptions, or user accounts
-- Fully implemented module routes beyond the homepage
+- Dynamic blog authoring, moderation, or content management workflows
+- Fully implemented module routes beyond the homepage and static blog pages
 
 ## Interaction Boundary
 
