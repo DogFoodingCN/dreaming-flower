@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { HomeOverlay } from "@/components/home/HomeOverlay";
 import { PlanetDock } from "@/components/home/PlanetDock";
-import { PlanetPanel } from "@/components/home/PlanetPanel";
 import { planets, solarSystemObjects, sun } from "@/components/home/planets";
 import { SolarSystemScene } from "@/components/home/SolarSystemScene";
 import type { Planet, Theme } from "@/components/home/types";
@@ -24,7 +23,6 @@ export default function Home() {
         onSelect={setSelectedPlanet}
       />
       <HomeOverlay theme={theme} onToggleTheme={() => setTheme((currentTheme) => (currentTheme === "night" ? "day" : "night"))} />
-      {selectedPlanet ? <PlanetPanel planet={selectedPlanet} /> : null}
       <PlanetDock objects={objects} selectedName={selectedName} onSelect={setSelectedPlanet} />
     </main>
   );
