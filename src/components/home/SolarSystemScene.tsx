@@ -213,6 +213,7 @@ const SELECTED_PLANET_EMISSIVE = new THREE.Color("#6f5b2a");
 const DEFAULT_PLANET_EMISSIVE_INTENSITY = 0.03;
 const SELECTED_PLANET_EMISSIVE_INTENSITY = 0.22;
 const SELECTED_PLANET_LIGHTING_SPEED = 0.22;
+const ORBIT_DEPTH_RATIO = 0.62;
 
 type GalaxyBackground = {
   distantStars: THREE.Points;
@@ -628,7 +629,7 @@ function createMaterial({
 
 function createOrbit(planet: Planet, theme: Theme, scene: THREE.Scene, disposables: Disposable[], incline = 0) {
   const orbitGeometry = new THREE.BufferGeometry().setFromPoints(
-    new THREE.EllipseCurve(0, 0, planet.orbitRadius, planet.orbitRadius * 0.62, 0, Math.PI * 2, false, 0).getPoints(192),
+    new THREE.EllipseCurve(0, 0, planet.orbitRadius, planet.orbitRadius * ORBIT_DEPTH_RATIO, 0, Math.PI * 2, false, 0).getPoints(192),
   );
   const orbitMaterial = new THREE.LineBasicMaterial({
     color: theme === "night" ? 0x9bb7ff : 0x345ca8,
@@ -762,10 +763,12 @@ function getSteppedOrbitPhase(planet: Planet, index: number, total: number) {
 }
 
 function getOrbitPosition(phase: number, orbitRadius: number, incline = 0) {
+  const orbitDepth = orbitRadius * ORBIT_DEPTH_RATIO;
+
   return new THREE.Vector3(
     Math.cos(phase) * orbitRadius,
-    Math.sin(phase) * Math.sin(incline) * orbitRadius * 0.42,
-    Math.sin(phase) * Math.cos(incline) * orbitRadius,
+    Math.sin(phase) * Math.sin(incline) * orbitDepth,
+    Math.sin(phase) * Math.cos(incline) * orbitDepth,
   );
 }
 
