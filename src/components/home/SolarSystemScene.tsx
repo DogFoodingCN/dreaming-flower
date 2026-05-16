@@ -943,6 +943,7 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
 
     let frame = 0;
     let hoveredMesh: THREE.Mesh | null = null;
+    let previousSelectedName = selectedNameRef.current;
     const clock = new THREE.Clock();
 
     const resize = () => {
@@ -1082,7 +1083,8 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
     const animate = () => {
       const delta = Math.min(clock.getDelta(), 0.04);
       const motionFactor = reducedMotion ? 0.08 : 1;
-      const selectedObject = objects.find(({ planet }) => planet.name === selectedNameRef.current);
+      const selectedName = selectedNameRef.current;
+      const selectedObject = objects.find(({ planet }) => planet.name === selectedName);
 
       objects.forEach((object) => {
         const { planet, mesh, baseScale } = object;
@@ -1092,7 +1094,7 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
           mesh.position.copy(getOrbitPosition(phase, planet.orbitRadius, getOrbitIncline(objects.indexOf(object) - 1)));
         }
         mesh.rotation.y += planet.rotationSpeed * delta * motionFactor;
-        const isSelected = planet.name === selectedNameRef.current;
+        const isSelected = planet.name === selectedName;
         const isHovered = hoveredMesh === mesh;
         updateSelectedLighting(mesh, isSelected);
         const targetScale = isSelected ? baseScale * 1.5 : isHovered ? baseScale * 1.16 : baseScale;
@@ -1115,6 +1117,9 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
       } else {
         cameraTarget.set(0, 0, 0);
         nextLookTarget.set(0, 0, 0);
+        if (previousSelectedName) {
+          zoomState.target = zoomState.max;
+        }
         selectedFillLight.intensity = THREE.MathUtils.lerp(selectedFillLight.intensity, 0, 0.18);
       }
       cameraRig.position.lerp(cameraTarget.multiplyScalar(-1), 0.07);
@@ -1122,6 +1127,7 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
       camera.lookAt(lookTarget);
       zoomState.current = THREE.MathUtils.lerp(zoomState.current, zoomState.target, 0.12);
       camera.position.z = zoomState.current;
+      previousSelectedName = selectedName;
 
       sunGlow.rotation.y += 0.05 * delta * motionFactor; // 太阳光晕自转速度：数值越大，光晕视觉旋转越快。
       galaxyBackground.distantStars.rotation.y += 0.003 * delta * motionFactor;
