@@ -24,7 +24,7 @@ export default function Home() {
         onSelect={setSelectedPlanet}
       />
       <HomeOverlay theme={theme} onToggleTheme={() => setTheme((currentTheme) => (currentTheme === "night" ? "day" : "night"))} />
-      <PlanetPanel planet={selectedPlanet} />
+      {selectedPlanet ? <PlanetPanel planet={selectedPlanet} /> : null}
       <PlanetDock objects={objects} selectedName={selectedName} onSelect={setSelectedPlanet} />
     </main>
   );

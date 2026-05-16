@@ -48,7 +48,7 @@ type ConstellationGuideConfig = {
   name: string;
   position: THREE.Vector3;
   scale: number;
-  rotation: number;
+  rotation: THREE.Euler;
   points: readonly (readonly [number, number])[];
   segments: readonly (readonly [number, number])[];
   labelOffset: readonly [number, number];
@@ -57,7 +57,7 @@ type ConstellationGuideConfig = {
 const NEBULA_TEXTURES = [
   {
     path: "/textures/nebulae/orion.jpg",
-    position: new THREE.Vector3(9, -1.8, -28),
+    position: new THREE.Vector3(10.2, -3.4, -28),
     scale: [8.6, 5.3] as const,
     rotation: -0.16,
     seed: 11,
@@ -65,7 +65,7 @@ const NEBULA_TEXTURES = [
   },
   {
     path: "/textures/nebulae/eagle.jpg",
-    position: new THREE.Vector3(17, 3.2, -31),
+    position: new THREE.Vector3(16.6, -0.4, -31),
     scale: [7.8, 4.8] as const,
     rotation: 0.18,
     seed: 23,
@@ -73,7 +73,7 @@ const NEBULA_TEXTURES = [
   },
   {
     path: "/textures/nebulae/carina.jpg",
-    position: new THREE.Vector3(4, 8.4, -34),
+    position: new THREE.Vector3(-5.6, -8.3, -34),
     scale: [10.8, 6.4] as const,
     rotation: 0.06,
     seed: 37,
@@ -86,7 +86,7 @@ const CONSTELLATION_GUIDES: ConstellationGuideConfig[] = [
     name: "北斗七星",
     position: new THREE.Vector3(-12.5, 7.4, -25),
     scale: 1.35,
-    rotation: -0.2,
+    rotation: new THREE.Euler(-0.18, -0.32, -0.2),
     points: [
       [-2.2, 0.25],
       [-1.45, 0.05],
@@ -100,10 +100,29 @@ const CONSTELLATION_GUIDES: ConstellationGuideConfig[] = [
     labelOffset: [2.45, 0.92],
   },
   {
+    name: "狮子座",
+    position: new THREE.Vector3(-16.2, 1.9, -29),
+    scale: 1.08,
+    rotation: new THREE.Euler(0.08, 0.42, 0.12),
+    points: [
+      [-1.85, -0.28],
+      [-1.22, 0.2],
+      [-0.52, 0.42],
+      [0.18, 0.16],
+      [0.82, 0.52],
+      [1.35, 0.18],
+      [1.08, -0.44],
+      [0.2, -0.68],
+      [-0.75, -0.5],
+    ],
+    segments: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 0], [3, 7]],
+    labelOffset: [1.75, 0.82],
+  },
+  {
     name: "猎户座",
     position: new THREE.Vector3(10.5, -4.4, -24),
     scale: 1.12,
-    rotation: 0.1,
+    rotation: new THREE.Euler(0.16, -0.18, 0.1),
     points: [
       [-1.2, 1.25],
       [1.05, 1.05],
@@ -117,10 +136,29 @@ const CONSTELLATION_GUIDES: ConstellationGuideConfig[] = [
     labelOffset: [1.45, -1.55],
   },
   {
+    name: "人马座",
+    position: new THREE.Vector3(2.2, -9.5, -26),
+    scale: 1.12,
+    rotation: new THREE.Euler(-0.24, 0.12, -0.12),
+    points: [
+      [-1.8, 0.2],
+      [-1.05, 0.58],
+      [-0.35, 0.24],
+      [0.25, 0.62],
+      [1.0, 0.2],
+      [1.58, -0.22],
+      [0.78, -0.42],
+      [0.1, -0.82],
+      [-0.66, -0.52],
+    ],
+    segments: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [4, 6], [6, 7], [7, 8], [8, 2], [2, 6]],
+    labelOffset: [1.82, -0.66],
+  },
+  {
     name: "仙女座星系",
     position: new THREE.Vector3(-8.8, 4.8, -30),
     scale: 1.2,
-    rotation: 0.38,
+    rotation: new THREE.Euler(0.28, -0.22, 0.38),
     points: [
       [-1.55, 0],
       [-0.78, 0.34],
@@ -137,7 +175,7 @@ const CONSTELLATION_GUIDES: ConstellationGuideConfig[] = [
     name: "天蝎座",
     position: new THREE.Vector3(13.8, -7.1, -27),
     scale: 1.05,
-    rotation: -0.42,
+    rotation: new THREE.Euler(-0.18, 0.3, -0.42),
     points: [
       [-1.85, 0.65],
       [-1.15, 0.2],
@@ -150,6 +188,24 @@ const CONSTELLATION_GUIDES: ConstellationGuideConfig[] = [
     ],
     segments: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7]],
     labelOffset: [1.95, -0.9],
+  },
+  {
+    name: "银河核心",
+    position: new THREE.Vector3(5.2, -10.8, -33),
+    scale: 1.36,
+    rotation: new THREE.Euler(-0.38, 0.08, 0.24),
+    points: [
+      [-1.7, -0.12],
+      [-0.95, 0.34],
+      [-0.18, 0.18],
+      [0.54, -0.2],
+      [1.24, -0.04],
+      [1.74, 0.3],
+      [-0.72, -0.36],
+      [0.82, 0.32],
+    ],
+    segments: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [6, 2], [2, 7]],
+    labelOffset: [1.88, 0.58],
   },
 ];
 const DEFAULT_PLANET_EMISSIVE = new THREE.Color("#08040f");
@@ -398,7 +454,7 @@ function createConstellationLabel(text: string, theme: Theme, disposables: Dispo
 function createConstellationGuide(config: ConstellationGuideConfig, theme: Theme, disposables: Disposable[]) {
   const group = new THREE.Group();
   group.position.copy(config.position);
-  group.rotation.z = config.rotation;
+  group.rotation.copy(config.rotation);
 
   const linePositions: number[] = [];
   config.segments.forEach(([start, end]) => {
@@ -570,7 +626,7 @@ function createMaterial({
   return material;
 }
 
-function createOrbit(planet: Planet, theme: Theme, scene: THREE.Scene, disposables: Disposable[]) {
+function createOrbit(planet: Planet, theme: Theme, scene: THREE.Scene, disposables: Disposable[], incline = 0) {
   const orbitGeometry = new THREE.BufferGeometry().setFromPoints(
     new THREE.EllipseCurve(0, 0, planet.orbitRadius, planet.orbitRadius * 0.62, 0, Math.PI * 2, false, 0).getPoints(192),
   );
@@ -580,7 +636,7 @@ function createOrbit(planet: Planet, theme: Theme, scene: THREE.Scene, disposabl
     opacity: theme === "night" ? 0.36 : 0.28,
   });
   const orbit = new THREE.LineLoop(orbitGeometry, orbitMaterial);
-  orbit.rotation.x = Math.PI / 2;
+  orbit.rotation.x = Math.PI / 2 - incline;
   scene.add(orbit);
   disposables.push(orbitGeometry, orbitMaterial);
 }
@@ -705,6 +761,18 @@ function getSteppedOrbitPhase(planet: Planet, index: number, total: number) {
   return step + jitter;
 }
 
+function getOrbitPosition(phase: number, orbitRadius: number, incline = 0) {
+  return new THREE.Vector3(
+    Math.cos(phase) * orbitRadius,
+    Math.sin(phase) * Math.sin(incline) * orbitRadius * 0.42,
+    Math.sin(phase) * Math.cos(incline) * orbitRadius,
+  );
+}
+
+function getOrbitIncline(index: number) {
+  return ((index % 5) - 2) * 0.045;
+}
+
 function createOrbitingPlanet({
   planet,
   orbitPhase,
@@ -716,6 +784,7 @@ function createOrbitingPlanet({
   selectableMeshes,
   objects,
   satellites,
+  orbitIncline,
 }: {
   planet: Planet;
   orbitPhase: number;
@@ -727,8 +796,9 @@ function createOrbitingPlanet({
   selectableMeshes: THREE.Mesh[];
   objects: SceneObject[];
   satellites: SatelliteObject[];
+  orbitIncline: number;
 }) {
-  createOrbit(planet, theme, scene, disposables);
+  createOrbit(planet, theme, scene, disposables, orbitIncline);
 
   const pivot = new THREE.Group();
   scene.add(pivot);
@@ -740,7 +810,7 @@ function createOrbitingPlanet({
     heightSegments: 28,
     disposables,
   });
-  mesh.position.set(Math.cos(orbitPhase) * planet.orbitRadius, 0, Math.sin(orbitPhase) * planet.orbitRadius * 0.62);
+  mesh.position.copy(getOrbitPosition(orbitPhase, planet.orbitRadius, orbitIncline));
   mesh.scale.y = 0.98;
   pivot.add(mesh);
   selectableMeshes.push(mesh);
@@ -771,8 +841,8 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
     const cameraRig = new THREE.Group();
     scene.add(cameraRig);
 
-    const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 100);
-    camera.position.set(0, 7.2, 10.8);
+    const camera = new THREE.PerspectiveCamera(52, 1, 0.1, 140);
+    camera.position.set(0, 8.4, 22);
     camera.lookAt(0, 0, 0);
     cameraRig.add(camera);
 
@@ -807,10 +877,10 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
     const lookTarget = new THREE.Vector3(0, 0, 0);
     const nextLookTarget = new THREE.Vector3(0, 0, 0);
     const zoomState = {
-      current: 10.8,
-      target: 10.8,
-      min: 5.8,
-      max: 22,
+      current: 24,
+      target: 24,
+      min: 4.8,
+      max: 24,
     };
     const activePointers = new Map<number, PointerEvent>();
     let pinchStartDistance = 0;
@@ -859,6 +929,7 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
       createOrbitingPlanet({
         planet,
         orbitPhase: getSteppedOrbitPhase(planet, index, planets.length),
+        orbitIncline: getOrbitIncline(index),
         theme,
         scene,
         loader,
@@ -878,12 +949,12 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
       const rect = mount.getBoundingClientRect();
       const width = Math.max(rect.width, 1);
       const height = Math.max(rect.height, 1);
-      const defaultZoom = width < 720 ? 16 : 12.5;
+      const defaultZoom = zoomState.max;
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
       zoomState.current = THREE.MathUtils.clamp(zoomState.current || defaultZoom, zoomState.min, zoomState.max);
       zoomState.target = THREE.MathUtils.clamp(zoomState.target || defaultZoom, zoomState.min, zoomState.max);
-      camera.position.y = width < 720 ? 9 : 7.6;
+      camera.position.y = width < 720 ? 10.2 : 8.4;
       camera.updateProjectionMatrix();
     };
 
@@ -906,7 +977,7 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
 
     const handleWheel = (event: WheelEvent) => {
       event.preventDefault();
-      zoomState.target = THREE.MathUtils.clamp(zoomState.target + event.deltaY * 0.008, zoomState.min, zoomState.max);
+      zoomState.target = THREE.MathUtils.clamp(zoomState.target + event.deltaY * 0.018, zoomState.min, zoomState.max);
     };
 
     const updateDragRotation = (event: PointerEvent) => {
@@ -939,7 +1010,7 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
         if (dragState.mode === "pinch") {
           const distance = getPointerDistance();
           if (distance > 0 && pinchStartDistance > 0) {
-            zoomState.target = THREE.MathUtils.clamp(pinchStartZoom * (pinchStartDistance / distance), zoomState.min, zoomState.max);
+            zoomState.target = THREE.MathUtils.clamp(pinchStartZoom * Math.pow(pinchStartDistance / distance, 1.45), zoomState.min, zoomState.max);
           }
           return;
         }
@@ -1018,7 +1089,7 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
         if (planet.orbitRadius > 0) {
           object.orbitPhase += planet.orbitSpeed * delta * motionFactor;
           const phase = object.orbitPhase + orbitDragOffset;
-          mesh.position.set(Math.cos(phase) * planet.orbitRadius, 0, Math.sin(phase) * planet.orbitRadius * 0.62);
+          mesh.position.copy(getOrbitPosition(phase, planet.orbitRadius, getOrbitIncline(objects.indexOf(object) - 1)));
         }
         mesh.rotation.y += planet.rotationSpeed * delta * motionFactor;
         const isSelected = planet.name === selectedNameRef.current;
