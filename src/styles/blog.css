@@ -135,7 +135,7 @@
   font-size: clamp(1.65rem, 4vw, 2.4rem);
   font-weight: 300;
   line-height: 0.84;
-  letter-spacing: -0.08em;
+  letter-spacing: 0.02em;
 }
 
 .blog-brand span span,
@@ -190,7 +190,7 @@
   color: inherit;
   font-size: clamp(1.1rem, 2.2vw, 1.45rem);
   line-height: 1.18;
-  letter-spacing: -0.03em;
+  letter-spacing: 0.018em;
 }
 
 .blog-hero span {
@@ -241,7 +241,7 @@
   padding-inline-end: clamp(0rem, 2vw, 1rem);
   font-size: clamp(1.12rem, 2.4vw, 1.55rem);
   line-height: 1.18;
-  letter-spacing: -0.03em;
+  letter-spacing: 0.018em;
 }
 
 .blog-card p {
@@ -312,7 +312,7 @@
   font-size: clamp(1.45rem, 3.2vw, 2.4rem);
   font-weight: 520;
   line-height: 1.12;
-  letter-spacing: -0.05em;
+  letter-spacing: 0.02em;
 }
 
 .blog-article-header p:not(.blog-article-kicker) {
