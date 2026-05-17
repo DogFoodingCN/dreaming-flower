@@ -50,6 +50,8 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
           </Link>
         }
         meta={<time dateTime={post.date}>{post.date}</time>}
+        title={post.title}
+        description={post.description}
       >
         <div className="blog-prose">
           <MDXRemote source={post.content} components={blogMdxComponents} options={blogMdxOptions} />

@@ -1,8 +1,21 @@
 .blog-prose {
-  margin-top: 1.4rem;
+  margin-top: 0;
   color: rgba(248, 251, 255, 0.76);
   font-size: clamp(1rem, 1.5vw, 1.08rem);
   line-height: 1.85;
+}
+
+.blog-prose h1 {
+  margin: 0 0 1.3rem;
+  padding-inline: clamp(0rem, 1vw, 0.5rem);
+  color: rgba(248, 251, 255, 0.9);
+  font-size: clamp(1.25rem, 2.6vw, 1.75rem);
+  line-height: 1.18;
+  letter-spacing: -0.04em;
+}
+
+.blog-page--day .blog-prose h1 {
+  color: rgba(17, 24, 39, 0.9);
 }
 
 .blog-prose h2,
@@ -11,17 +24,21 @@
 }
 
 .blog-prose h2 {
-  margin: 2rem 0 0.75rem;
+  margin: 2rem 0 0.8rem;
+  padding-inline: clamp(0rem, 1vw, 0.5rem);
   color: inherit;
-  font-size: clamp(1.4rem, 3vw, 2rem);
-  letter-spacing: -0.04em;
+  font-size: clamp(1.12rem, 2.2vw, 1.45rem);
+  line-height: 1.24;
+  letter-spacing: -0.03em;
 }
 
 .blog-prose h3 {
-  margin: 1.55rem 0 0.65rem;
+  margin: 1.6rem 0 0.7rem;
+  padding-inline: clamp(0rem, 1vw, 0.5rem);
   color: inherit;
-  font-size: clamp(1.16rem, 2.2vw, 1.45rem);
-  letter-spacing: -0.02em;
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
 .blog-prose blockquote {
@@ -56,19 +73,164 @@
 }
 
 .blog-mermaid {
+  position: relative;
   margin: 1.35rem 0;
   padding: 1rem;
-  overflow-x: auto;
+  overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 1rem;
   background: rgba(255, 255, 255, 0.06);
 }
 
-.blog-mermaid svg {
+.blog-mermaid-scroll {
+  overflow-x: auto;
+}
+
+.blog-mermaid-open-button,
+.blog-mermaid-fullscreen-controls button {
+  display: inline-grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(248, 251, 255, 0.86);
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.blog-mermaid-open-button {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 2;
+  backdrop-filter: blur(12px);
+}
+
+.blog-mermaid-open-button:hover,
+.blog-mermaid-open-button:focus-visible,
+.blog-mermaid-fullscreen-controls button:hover,
+.blog-mermaid-fullscreen-controls button:focus-visible {
+  border-color: var(--blog-accent, rgba(159, 181, 255, 0.8));
+  background: rgba(255, 255, 255, 0.14);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.blog-mermaid-svg svg {
   display: block;
   max-width: 100%;
   height: auto;
   margin: 0 auto;
+}
+
+.blog-mermaid-svg .flowchart-link,
+.blog-mermaid-svg .edgePath path,
+.blog-mermaid-svg marker path {
+  stroke: rgba(198, 210, 255, 0.82) !important;
+}
+
+.blog-mermaid-svg .node rect,
+.blog-mermaid-svg .node circle,
+.blog-mermaid-svg .node ellipse,
+.blog-mermaid-svg .node polygon,
+.blog-mermaid-svg .node path {
+  stroke: rgba(159, 181, 255, 0.72) !important;
+}
+
+.blog-mermaid-svg .label,
+.blog-mermaid-svg .label text,
+.blog-mermaid-svg .edgeLabel,
+.blog-mermaid-svg .edgeLabel p,
+.blog-mermaid-svg .nodeLabel,
+.blog-mermaid-svg text {
+  color: rgba(248, 251, 255, 0.9) !important;
+  fill: rgba(248, 251, 255, 0.9) !important;
+}
+
+.blog-mermaid-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  padding: clamp(1.5rem, 5svh, 3rem) clamp(1rem, 4vw, 2rem);
+  place-items: center;
+}
+
+.blog-mermaid-fullscreen-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.68);
+  cursor: zoom-out;
+}
+
+.blog-mermaid-fullscreen-panel {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: min(100%, 70rem);
+  height: min(calc(100svh - 5rem), 46rem);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 1.4rem;
+  background: rgba(3, 7, 18, 0.94);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.46);
+}
+
+.blog-mermaid-fullscreen-panel > div {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.blog-mermaid-fullscreen-controls {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.blog-mermaid-fullscreen-controls button {
+  background: rgba(3, 7, 18, 0.42);
+  backdrop-filter: blur(12px);
+}
+
+.blog-mermaid-fullscreen-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  cursor: grab;
+  touch-action: none;
+}
+
+.blog-mermaid-fullscreen-canvas:active {
+  cursor: grabbing;
+}
+
+.blog-mermaid-fullscreen-content {
+  display: grid !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: clamp(4rem, 9svh, 5rem) clamp(1.25rem, 3vw, 2rem) clamp(1.25rem, 3vw, 2rem);
+  place-items: center;
+}
+
+.blog-mermaid-fullscreen-content .blog-mermaid-svg {
+  min-width: min(52rem, 100%);
 }
 
 .katex-display {
@@ -91,5 +253,142 @@
 .blog-page--day .blog-mermaid {
   border-color: rgba(17, 24, 39, 0.1);
   background: rgba(255, 255, 255, 0.24);
+}
+
+.blog-page--day .blog-mermaid-open-button,
+.blog-page--day .blog-mermaid-fullscreen-controls button {
+  border-color: rgba(17, 24, 39, 0.12);
+  background: rgba(255, 255, 255, 0.38);
+  color: rgba(17, 24, 39, 0.78);
+}
+
+.blog-page--day .blog-mermaid-open-button:hover,
+.blog-page--day .blog-mermaid-open-button:focus-visible,
+.blog-page--day .blog-mermaid-fullscreen-controls button:hover,
+.blog-page--day .blog-mermaid-fullscreen-controls button:focus-visible {
+  border-color: rgba(53, 70, 112, 0.45);
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.blog-page--day .blog-mermaid-svg .flowchart-link,
+.blog-page--day .blog-mermaid-svg .edgePath path,
+.blog-page--day .blog-mermaid-svg marker path {
+  stroke: rgba(39, 55, 91, 0.9) !important;
+}
+
+.blog-page--day .blog-mermaid-svg .node rect,
+.blog-page--day .blog-mermaid-svg .node circle,
+.blog-page--day .blog-mermaid-svg .node ellipse,
+.blog-page--day .blog-mermaid-svg .node polygon,
+.blog-page--day .blog-mermaid-svg .node path {
+  stroke: rgba(53, 70, 112, 0.78) !important;
+}
+
+.blog-page--day .blog-mermaid-svg .label,
+.blog-page--day .blog-mermaid-svg .label text,
+.blog-page--day .blog-mermaid-svg .edgeLabel,
+.blog-page--day .blog-mermaid-svg .edgeLabel p,
+.blog-page--day .blog-mermaid-svg .nodeLabel,
+.blog-page--day .blog-mermaid-svg text {
+  color: rgba(17, 24, 39, 0.92) !important;
+  fill: rgba(17, 24, 39, 0.92) !important;
+}
+
+.blog-page--day .blog-mermaid-fullscreen-backdrop {
+  background: rgba(36, 58, 92, 0.34);
+}
+
+.blog-page--day .blog-mermaid-fullscreen-panel {
+  border-color: rgba(255, 255, 255, 0.38);
+  background: rgba(245, 249, 255, 0.96);
+  box-shadow: 0 28px 90px rgba(65, 86, 128, 0.18);
+}
+
+.blog-page--day .blog-mermaid-fullscreen-controls {
+  background: transparent;
+}
+
+.blog-page--day .blog-mermaid-fullscreen-controls button {
+  background: rgba(255, 255, 255, 0.38);
+}
+
+@media (max-width: 640px) {
+  .blog-prose h1 {
+    margin-bottom: 1.1rem;
+    padding-inline: 0;
+    line-height: 1.22;
+  }
+
+  .blog-prose h2 {
+    margin: 1.75rem 0 0.7rem;
+    padding-inline: 0;
+    line-height: 1.28;
+  }
+
+  .blog-prose h3 {
+    margin: 1.35rem 0 0.6rem;
+    padding-inline: 0;
+    line-height: 1.32;
+  }
+
+  .blog-mermaid {
+    margin: 1.1rem 0;
+    padding: 0.75rem;
+    border-radius: 0.9rem;
+  }
+
+  .blog-mermaid-toolbar {
+    gap: 0.5rem;
+    margin-bottom: 0.65rem;
+    font-size: 0.68rem;
+  }
+
+  .blog-mermaid-open-button,
+  .blog-mermaid-fullscreen-controls button {
+    width: 2.4rem;
+    height: 2.4rem;
+  }
+
+  .blog-mermaid-svg svg {
+    min-width: 38rem;
+  }
+
+  .blog-mermaid-fullscreen {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .blog-mermaid-fullscreen-panel {
+    width: 100%;
+    height: calc(100svh - 3rem);
+    border-radius: 1rem;
+  }
+
+  .blog-mermaid-open-button {
+    top: 0.6rem;
+    right: 0.6rem;
+  }
+
+  .blog-mermaid-fullscreen-controls {
+    top: 0.75rem;
+    right: 0.75rem;
+    gap: 0.4rem;
+    padding: 0;
+  }
+
+  .blog-mermaid-fullscreen-controls button {
+    background: rgba(3, 7, 18, 0.34);
+  }
+
+  .blog-page--day .blog-mermaid-fullscreen-controls button {
+    background: rgba(255, 255, 255, 0.38);
+  }
+
+  .blog-mermaid-fullscreen-content {
+    padding: 4rem 0.85rem 1rem;
+  }
+
+  .blog-mermaid-fullscreen-content .blog-mermaid-svg {
+    min-width: 42rem;
+  }
 }
 

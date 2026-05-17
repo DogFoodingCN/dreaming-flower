@@ -10,10 +10,12 @@ type BlogArticleFrameProps = {
   headings: BlogPostHeading[];
   backLink: ReactNode;
   meta: ReactNode;
+  title: string;
+  description: string;
   children: ReactNode;
 };
 
-export function BlogArticleFrame({ accent, headings, backLink, meta, children }: BlogArticleFrameProps) {
+export function BlogArticleFrame({ accent, headings, backLink, meta, title, description, children }: BlogArticleFrameProps) {
   const minimumTocTop = 84;
   const articleRef = useRef<HTMLElement>(null);
   const [isTocVisible, setIsTocVisible] = useState(headings.length > 0);
@@ -62,6 +64,11 @@ export function BlogArticleFrame({ accent, headings, backLink, meta, children }:
               ) : null}
             </div>
           </div>
+          <header className="blog-article-header">
+            <p className="blog-article-kicker">Article</p>
+            <h1>{title}</h1>
+            <p>{description}</p>
+          </header>
           {children}
         </div>
       </article>
