@@ -31,6 +31,8 @@ Suggested visual vocabulary:
 - The site must support day and night modes.
 - Night mode may use a deeper galaxy atmosphere.
 - Day mode should remain bright, legible, and aligned with the same visual system.
+- Root viewport background, page backgrounds, glass panels, borders, and interactive states should all follow the active theme.
+- Future module entries should reuse the same galaxy, constellation, orbit, and glass vocabulary instead of introducing unrelated visual systems.
 
 ## Motion
 

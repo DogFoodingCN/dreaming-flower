@@ -2,8 +2,8 @@
 
 import type { CSSProperties, ReactNode } from "react";
 import { useLayoutEffect, useRef, useState } from "react";
-import { BlogArticleToc } from "@/components/blog/BlogArticleToc";
-import type { BlogPostHeading } from "@/lib/blog";
+import { BlogArticleToc } from "@/features/blog/components/BlogArticleToc";
+import type { BlogPostHeading } from "@/features/blog/content/posts";
 
 type BlogArticleFrameProps = {
   accent?: string;

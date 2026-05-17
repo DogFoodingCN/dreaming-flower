@@ -1,0 +1,95 @@
+.blog-prose {
+  margin-top: 1.4rem;
+  color: rgba(248, 251, 255, 0.76);
+  font-size: clamp(1rem, 1.5vw, 1.08rem);
+  line-height: 1.85;
+}
+
+.blog-prose h2,
+.blog-prose h3 {
+  scroll-margin-top: 1.2rem;
+}
+
+.blog-prose h2 {
+  margin: 2rem 0 0.75rem;
+  color: inherit;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  letter-spacing: -0.04em;
+}
+
+.blog-prose h3 {
+  margin: 1.55rem 0 0.65rem;
+  color: inherit;
+  font-size: clamp(1.16rem, 2.2vw, 1.45rem);
+  letter-spacing: -0.02em;
+}
+
+.blog-prose blockquote {
+  margin: 1.4rem 0;
+  padding-left: 1rem;
+  border-left: 2px solid var(--blog-accent, #9fb5ff);
+  color: rgba(248, 251, 255, 0.72);
+}
+
+.blog-code-block {
+  margin: 1.2rem 0;
+  padding: 1rem;
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 1rem;
+  background: rgba(0, 0, 0, 0.26);
+  color: rgba(248, 251, 255, 0.82);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.blog-prose code {
+  font-family: var(--font-geist-mono), monospace;
+}
+
+.blog-prose :not(pre) > code {
+  padding: 0.12rem 0.35rem;
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--blog-accent, #9fb5ff);
+  font-size: 0.92em;
+}
+
+.blog-mermaid {
+  margin: 1.35rem 0;
+  padding: 1rem;
+  overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.blog-mermaid svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0;
+}
+
+.blog-page--day .blog-code-block {
+  border-color: rgba(17, 24, 39, 0.1);
+  background: rgba(255, 255, 255, 0.28);
+  color: rgba(17, 24, 39, 0.78);
+}
+
+.blog-page--day .blog-prose :not(pre) > code {
+  background: rgba(255, 255, 255, 0.36);
+  color: rgba(53, 70, 112, 0.9);
+}
+
+.blog-page--day .blog-mermaid {
+  border-color: rgba(17, 24, 39, 0.1);
+  background: rgba(255, 255, 255, 0.24);
+}
+

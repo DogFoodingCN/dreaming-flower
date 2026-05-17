@@ -1,5 +1,3 @@
-export type Theme = "night" | "day";
-
 export type PlanetRing = {
   innerRadiusRatio: number;
   outerRadiusRatio: number;

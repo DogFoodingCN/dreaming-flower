@@ -9,7 +9,15 @@
 
 ## Current Direction
 
-Dreaming Flower should begin as a personal galaxy entrance: a memorable homepage that introduces the project identity and creates room for future modules.
+Dreaming Flower should begin as a personal galaxy entrance: a memorable homepage that introduces the project identity and creates room for future modules. The site should grow from this entrance into a structured personal space for product experience, writing, and future experiments without becoming a broad unfinished platform.
+
+## Structure Discipline
+
+- Route files in `src/app/` should stay thin and compose feature-level capabilities.
+- Cross-page chrome and providers belong in `src/components/site/`.
+- Feature-owned UI, data, rendering helpers, and types belong under `src/features/<feature>/` once a feature grows beyond a single component.
+- Shared domain-neutral utilities and types belong in `src/lib/`.
+- Global styles should be split by responsibility under `src/styles/` and imported from `src/app/globals.css`.
 
 ## Scope Discipline
 

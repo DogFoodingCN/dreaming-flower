@@ -18,6 +18,8 @@ The homepage should act as the galaxy entrance for Dreaming Flower and introduce
 - Static MDX blog list and detail pages
 - Blog pages that match the homepage galaxy/glass visual system
 - Day and night mode switching for blog pages
+- Architecture and directory restructuring that preserves current functionality
+- Style splitting, type consolidation, and content-boundary cleanup that keep the MVP scope intact
 
 ## Out of Scope
 

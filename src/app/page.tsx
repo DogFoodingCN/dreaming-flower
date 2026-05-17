@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { HomeOverlay } from "@/components/home/HomeOverlay";
-import { PlanetDock } from "@/components/home/PlanetDock";
-import { planets, solarSystemObjects, sun } from "@/components/home/planets";
-import { SolarSystemScene } from "@/components/home/SolarSystemScene";
+import { HomeOverlay } from "@/features/home/components/HomeOverlay";
+import { PlanetDock } from "@/features/home/components/PlanetDock";
+import { planets, solarSystemObjects, sun } from "@/features/home/data/planets";
+import { SolarSystemScene } from "@/features/home/components/SolarSystemScene";
 import { useSiteTheme } from "@/components/site/SiteThemeProvider";
-import type { Planet } from "@/components/home/types";
+import type { Planet } from "@/features/home/types";
 
 export default function Home() {
   const { theme, toggleTheme } = useSiteTheme();

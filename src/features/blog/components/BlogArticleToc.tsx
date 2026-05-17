@@ -1,6 +1,6 @@
 "use client";
 
-import type { BlogPostHeading } from "@/lib/blog";
+import type { BlogPostHeading } from "@/features/blog/content/posts";
 
 type BlogArticleTocProps = {
   headings: BlogPostHeading[];

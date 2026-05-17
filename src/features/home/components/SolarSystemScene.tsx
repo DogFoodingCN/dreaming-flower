@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import type { Planet, PlanetSatellite, Theme } from "./types";
+import type { Theme } from "@/lib/theme";
+import type { Planet, PlanetSatellite } from "../types";
 
 type SolarSystemSceneProps = {
   selectedName: string | null;

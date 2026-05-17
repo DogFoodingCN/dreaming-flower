@@ -1,4 +1,4 @@
-import type { Planet } from "./types";
+import type { Planet } from "../types";
 
 const EARTH_RADIUS_KM = 6371;
 const MERCURY_ORBIT_MILLION_KM = 57.9;

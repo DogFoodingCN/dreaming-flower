@@ -1,4 +1,4 @@
-import type { Planet } from "./types";
+import type { Planet } from "../types";
 
 type PlanetPanelProps = {
   planet: Planet | null;

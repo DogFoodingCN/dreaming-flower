@@ -2,13 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
-import rehypeKatex from "rehype-katex";
-import rehypeSlug from "rehype-slug";
-import remarkMath from "remark-math";
-import { BlogArticleFrame } from "@/components/blog/BlogArticleFrame";
-import { blogMdxComponents } from "@/components/blog/BlogMdxComponents";
-import { BlogShell } from "@/components/blog/BlogShell";
-import { getBlogPost, getBlogPosts } from "@/lib/blog";
+import { BlogArticleFrame } from "@/features/blog/components/BlogArticleFrame";
+import { BlogShell } from "@/features/blog/components/BlogShell";
+import { getBlogPost, getBlogPosts } from "@/features/blog/content/posts";
+import { blogMdxComponents } from "@/features/blog/mdx/components";
+import { blogMdxOptions } from "@/features/blog/mdx/options";
 
 type BlogDetailPageProps = {
   params: Promise<{ slug: string }>;
@@ -54,16 +52,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
         meta={<time dateTime={post.date}>{post.date}</time>}
       >
         <div className="blog-prose">
-          <MDXRemote
-            source={post.content}
-            components={blogMdxComponents}
-            options={{
-              mdxOptions: {
-                remarkPlugins: [remarkMath],
-                rehypePlugins: [rehypeSlug, rehypeKatex],
-              },
-            }}
-          />
+          <MDXRemote source={post.content} components={blogMdxComponents} options={blogMdxOptions} />
         </div>
       </BlogArticleFrame>
     </BlogShell>

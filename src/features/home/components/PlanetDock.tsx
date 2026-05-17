@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { Planet } from "./types";
+import type { Planet } from "../types";
 
 type PlanetDockProps = {
   objects: Planet[];

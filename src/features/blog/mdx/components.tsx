@@ -1,6 +1,6 @@
 import { isValidElement } from "react";
 import type { ComponentPropsWithoutRef, ReactElement } from "react";
-import { MermaidDiagram } from "@/components/blog/MermaidDiagram";
+import { MermaidDiagram } from "@/features/blog/components/MermaidDiagram";
 
 type CodeElementProps = ComponentPropsWithoutRef<"code">;
 

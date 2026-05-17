@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { Theme } from "@/components/home/types";
+import type { Theme } from "@/lib/theme";
 
 type SiteChromeProps = {
   theme: Theme;

@@ -1,5 +1,5 @@
 import { SiteChrome } from "@/components/site/SiteChrome";
-import type { Theme } from "./types";
+import type { Theme } from "@/lib/theme";
 
 type HomeOverlayProps = {
   theme: Theme;

@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import { BlogShell } from "@/components/blog/BlogShell";
-import { getBlogPosts } from "@/lib/blog";
+import { BlogShell } from "@/features/blog/components/BlogShell";
+import { getBlogPosts } from "@/features/blog/content/posts";
 
 export const metadata = {
   title: "博客 | Dreaming Flower",

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
-import type { Theme } from "@/components/home/types";
+import type { Theme } from "@/lib/theme";
 
 type SiteThemeContextValue = {
   theme: Theme;
