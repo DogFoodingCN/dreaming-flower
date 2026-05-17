@@ -105,7 +105,16 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
         <div className="blog-mermaid-fullscreen" role="dialog" aria-modal="true" aria-label="Mermaid 图表全屏查看">
           <button type="button" className="blog-mermaid-fullscreen-backdrop" aria-label="关闭全屏查看" onClick={() => setIsFullscreen(false)} />
           <div className="blog-mermaid-fullscreen-panel">
-            <TransformWrapper initialScale={0.92} minScale={0.55} maxScale={2.4} centerOnInit wheel={{ step: 0.1 }} doubleClick={{ disabled: true }}>
+            <TransformWrapper
+              initialScale={0.92}
+              minScale={0.55}
+              maxScale={2.4}
+              centerOnInit
+              wheel={{ step: 0.1 }}
+              pinch={{ step: 5 }}
+              panning={{ velocityDisabled: true }}
+              doubleClick={{ disabled: true }}
+            >
               {({ zoomIn, zoomOut, resetTransform }) => (
                 <>
                   <div className="blog-mermaid-fullscreen-controls">
