@@ -100,9 +100,9 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
       <button type="button" className="blog-mermaid-fullscreen-backdrop" aria-label="关闭全屏查看" onClick={() => setIsFullscreen(false)} />
       <div className="blog-mermaid-fullscreen-panel">
         <TransformWrapper
-          initialScale={1.18}
-          minScale={0.45}
-          maxScale={3}
+          initialScale={2.2}
+          minScale={0.7}
+          maxScale={4}
           centerOnInit
           centerZoomedOut
           limitToBounds={false}
