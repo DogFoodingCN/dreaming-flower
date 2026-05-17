@@ -1,8 +1,15 @@
 import fs from "node:fs";
 import path from "node:path";
+import GithubSlugger from "github-slugger";
 import matter from "gray-matter";
 
 const BLOG_DIRECTORY = path.join(process.cwd(), "content/blog");
+
+export type BlogPostHeading = {
+  id: string;
+  text: string;
+  level: 2 | 3;
+};
 
 export type BlogPost = {
   title: string;
@@ -12,9 +19,36 @@ export type BlogPost = {
   excerpt: string;
   themeAccent?: string;
   content: string;
+  headings: BlogPostHeading[];
 };
 
-export type BlogPostSummary = Omit<BlogPost, "content">;
+export type BlogPostSummary = Omit<BlogPost, "content" | "headings">;
+
+function stripInlineMarkdown(value: string) {
+  return value
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1")
+    .replace(/[\\*_~]/g, "")
+    .trim();
+}
+
+function getPostHeadings(content: string): BlogPostHeading[] {
+  const slugger = new GithubSlugger();
+
+  return content
+    .split("\n")
+    .map((line) => line.match(/^(#{2,3})\s+(.+)$/))
+    .filter((match): match is RegExpMatchArray => Boolean(match))
+    .map((match) => {
+      const text = stripInlineMarkdown(match[2]);
+
+      return {
+        id: slugger.slug(text),
+        text,
+        level: match[1].length as 2 | 3,
+      };
+    });
+}
 
 function readPostFile(fileName: string): BlogPost {
   const filePath = path.join(BLOG_DIRECTORY, fileName);
@@ -29,6 +63,7 @@ function readPostFile(fileName: string): BlogPost {
     excerpt: String(data.excerpt ?? data.description),
     themeAccent: data.themeAccent ? String(data.themeAccent) : undefined,
     content,
+    headings: getPostHeadings(content),
   };
 }
 

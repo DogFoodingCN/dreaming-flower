@@ -1,8 +1,12 @@
-import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
+import rehypeKatex from "rehype-katex";
+import rehypeSlug from "rehype-slug";
+import remarkMath from "remark-math";
+import { BlogArticleFrame } from "@/components/blog/BlogArticleFrame";
+import { blogMdxComponents } from "@/components/blog/BlogMdxComponents";
 import { BlogShell } from "@/components/blog/BlogShell";
 import { getBlogPost, getBlogPosts } from "@/lib/blog";
 
@@ -38,16 +42,30 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
 
   return (
     <BlogShell title={post.title} description={post.description}>
-      <article className="blog-article" style={{ "--blog-accent": post.themeAccent } as CSSProperties}>
-        <Link className="blog-back-link" href="/blog" aria-label="返回博客列表">
-          <span aria-hidden="true">←</span>
-          返回博客列表
-        </Link>
-        <time dateTime={post.date}>{post.date}</time>
+      <BlogArticleFrame
+        accent={post.themeAccent}
+        headings={post.headings}
+        backLink={
+          <Link className="blog-back-link" href="/blog" aria-label="返回博客列表">
+            <span aria-hidden="true">←</span>
+            返回博客列表
+          </Link>
+        }
+        meta={<time dateTime={post.date}>{post.date}</time>}
+      >
         <div className="blog-prose">
-          <MDXRemote source={post.content} />
+          <MDXRemote
+            source={post.content}
+            components={blogMdxComponents}
+            options={{
+              mdxOptions: {
+                remarkPlugins: [remarkMath],
+                rehypePlugins: [rehypeSlug, rehypeKatex],
+              },
+            }}
+          />
         </div>
-      </article>
+      </BlogArticleFrame>
     </BlogShell>
   );
 }
