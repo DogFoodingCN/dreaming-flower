@@ -14,20 +14,34 @@ type BlogArticleFrameProps = {
 };
 
 export function BlogArticleFrame({ accent, headings, backLink, meta, children }: BlogArticleFrameProps) {
+  const minimumTocTop = 84;
   const articleRef = useRef<HTMLElement>(null);
   const [isTocVisible, setIsTocVisible] = useState(headings.length > 0);
-  const [tocTop, setTocTop] = useState(0);
+  const [tocTop, setTocTop] = useState(minimumTocTop);
   const hasHeadings = headings.length > 0;
 
   useLayoutEffect(() => {
+    let animationFrame = 0;
+
     function updateTocTop() {
-      const articleTop = articleRef.current?.getBoundingClientRect().top ?? 0;
-      setTocTop(Math.max(0, articleTop));
+      const articleTop = articleRef.current?.getBoundingClientRect().top ?? minimumTocTop;
+      setTocTop(Math.max(minimumTocTop, articleTop));
+    }
+
+    function scheduleTocTopUpdate() {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = requestAnimationFrame(updateTocTop);
     }
 
     updateTocTop();
-    window.addEventListener("resize", updateTocTop);
-    return () => window.removeEventListener("resize", updateTocTop);
+    window.addEventListener("resize", scheduleTocTopUpdate);
+    window.addEventListener("scroll", scheduleTocTopUpdate, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      window.removeEventListener("resize", scheduleTocTopUpdate);
+      window.removeEventListener("scroll", scheduleTocTopUpdate);
+    };
   }, []);
 
   return (
