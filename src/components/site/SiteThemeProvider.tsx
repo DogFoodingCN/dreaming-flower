@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useSyncExternalStore } from "react";
+import { createContext, useContext, useEffect, useMemo, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 import type { Theme } from "@/components/home/types";
 
@@ -44,6 +44,10 @@ function setStoredTheme(theme: Theme) {
 
 export function SiteThemeProvider({ children }: { children: ReactNode }) {
   const theme = useSyncExternalStore(subscribeToThemeChanges, getStoredTheme, getServerTheme);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
 
   const value = useMemo(
     () => ({

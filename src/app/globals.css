@@ -3,6 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --viewport-background: #020204;
   --solar-brand-text: rgba(248, 251, 255, 0.94);
   --solar-brand-muted: rgba(210, 220, 255, 0.68);
   --solar-brand-intro: rgba(222, 229, 255, 0.72);
@@ -10,6 +11,14 @@
   --solar-brand-panel-background: linear-gradient(90deg, rgba(2, 6, 18, 0.42), rgba(2, 6, 18, 0.12));
   --solar-brand-panel-border: transparent;
   --solar-brand-panel-shadow: none;
+}
+
+:root[data-theme="day"] {
+  --viewport-background: #b9d0ff;
+}
+
+:root[data-theme="night"] {
+  --viewport-background: #020204;
 }
 
 @theme inline {
@@ -32,12 +41,13 @@
 
 html {
   min-height: 100%;
+  background: var(--viewport-background);
 }
 
 body {
   min-height: 100%;
   margin: 0;
-  background: var(--background);
+  background: var(--viewport-background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
