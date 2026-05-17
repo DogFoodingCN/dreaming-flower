@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import { Maximize2, Minus, Plus, RotateCcw, X } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Maximize2 } from "lucide-react";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { useSiteTheme } from "@/components/site/SiteThemeProvider";
 
@@ -94,6 +95,31 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
   }
 
   const diagram = <div className="blog-mermaid-svg" dangerouslySetInnerHTML={{ __html: svg }} />;
+  const fullscreen = isFullscreen ? (
+    <div className={`blog-mermaid-fullscreen blog-mermaid-fullscreen--${theme}`} role="dialog" aria-modal="true" aria-label="Mermaid 图表全屏查看">
+      <button type="button" className="blog-mermaid-fullscreen-backdrop" aria-label="关闭全屏查看" onClick={() => setIsFullscreen(false)} />
+      <div className="blog-mermaid-fullscreen-panel">
+        <TransformWrapper
+          initialScale={1.18}
+          minScale={0.45}
+          maxScale={3}
+          centerOnInit
+          centerZoomedOut
+          limitToBounds={false}
+          wheel={{ step: 0.12 }}
+          pinch={{ step: 8 }}
+          panning={{ velocityDisabled: true }}
+          doubleClick={{ disabled: true }}
+        >
+          {() => (
+            <TransformComponent wrapperClass="blog-mermaid-fullscreen-canvas" contentClass="blog-mermaid-fullscreen-content">
+              {diagram}
+            </TransformComponent>
+          )}
+        </TransformWrapper>
+      </div>
+    </div>
+  ) : null;
 
   return (
     <figure className="blog-mermaid">
@@ -101,45 +127,7 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
         <Maximize2 aria-hidden="true" size={16} strokeWidth={1.8} />
       </button>
       <div className="blog-mermaid-scroll">{diagram}</div>
-      {isFullscreen ? (
-        <div className="blog-mermaid-fullscreen" role="dialog" aria-modal="true" aria-label="Mermaid 图表全屏查看">
-          <button type="button" className="blog-mermaid-fullscreen-backdrop" aria-label="关闭全屏查看" onClick={() => setIsFullscreen(false)} />
-          <div className="blog-mermaid-fullscreen-panel">
-            <TransformWrapper
-              initialScale={0.92}
-              minScale={0.55}
-              maxScale={2.4}
-              centerOnInit
-              wheel={{ step: 0.1 }}
-              pinch={{ step: 5 }}
-              panning={{ velocityDisabled: true }}
-              doubleClick={{ disabled: true }}
-            >
-              {({ zoomIn, zoomOut, resetTransform }) => (
-                <>
-                  <div className="blog-mermaid-fullscreen-controls">
-                    <button type="button" aria-label="放大 Mermaid 图表" title="放大" onClick={() => zoomIn(0.15)}>
-                      <Plus aria-hidden="true" size={17} strokeWidth={1.9} />
-                    </button>
-                    <button type="button" aria-label="缩小 Mermaid 图表" title="缩小" onClick={() => zoomOut(0.2)}>
-                      <Minus aria-hidden="true" size={17} strokeWidth={1.9} />
-                    </button>
-                    <button type="button" aria-label="重置 Mermaid 图表视图" title="重置" onClick={() => resetTransform()}>
-                      <RotateCcw aria-hidden="true" size={16} strokeWidth={1.9} />
-                    </button>
-                    <button type="button" aria-label="关闭 Mermaid 图表全屏查看" title="关闭" onClick={() => setIsFullscreen(false)}>
-                      <X aria-hidden="true" size={17} strokeWidth={1.9} />
-                    </button>
-                  </div>
-                  <TransformComponent wrapperClass="blog-mermaid-fullscreen-canvas" contentClass="blog-mermaid-fullscreen-content">
-                    {diagram}
-                  </TransformComponent>
-                </>
-              )}
-            </TransformWrapper>
-          </div>
-        </div>
-      ) : null}
+      {fullscreen ? createPortal(fullscreen, document.body) : null}
     </figure>
   );
 }
