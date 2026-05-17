@@ -1029,11 +1029,13 @@ button {
 }
 
 .blog-toc {
-  position: sticky;
-  top: 5.25rem;
+  position: fixed;
+  top: var(--blog-toc-top, 0);
+  right: max(1rem, calc((100vw - 73rem) / 2));
+  z-index: 3;
   display: block;
-  align-self: start;
-  max-height: calc(100svh - 6.5rem);
+  width: min(16rem, calc((100vw - 64rem) / 2 - 2rem));
+  max-height: calc(100svh - var(--blog-toc-top, 0rem) - 1rem);
   overflow-y: auto;
 }
 
@@ -1048,7 +1050,10 @@ button {
   background: transparent;
   box-shadow: none;
   color: inherit;
-  font: inherit;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  line-height: inherit;
+  text-transform: uppercase;
   white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
@@ -1228,7 +1233,8 @@ button {
     grid-template-columns: minmax(0, 64rem);
   }
 
-  .blog-toc {
+  .blog-toc,
+  .blog-toc-toggle {
     display: none;
   }
 }
