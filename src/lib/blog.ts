@@ -25,7 +25,7 @@ function readPostFile(fileName: string): BlogPost {
     title: String(data.title),
     description: String(data.description),
     date: String(data.date),
-    slug: String(data.slug ?? fileName.replace(/\.mdx$/, "")),
+    slug: fileName.replace(/\.mdx$/, ""),
     excerpt: String(data.excerpt ?? data.description),
     themeAccent: data.themeAccent ? String(data.themeAccent) : undefined,
     content,

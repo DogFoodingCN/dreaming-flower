@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 import type { Theme } from "@/components/home/types";
 
@@ -10,29 +10,47 @@ type SiteThemeContextValue = {
 };
 
 const THEME_STORAGE_KEY = "dreaming-flower-theme";
+const THEME_CHANGE_EVENT = "dreaming-flower-theme-change";
+const DEFAULT_THEME: Theme = "night";
 const SiteThemeContext = createContext<SiteThemeContextValue | null>(null);
 
-function getStoredTheme(): Theme {
-  if (typeof window === "undefined") {
-    return "night";
-  }
-
+function readStoredTheme(): Theme {
   const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-  return savedTheme === "day" || savedTheme === "night" ? savedTheme : "night";
+  return savedTheme === "day" || savedTheme === "night" ? savedTheme : DEFAULT_THEME;
+}
+
+function subscribeToThemeChanges(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener(THEME_CHANGE_EVENT, onStoreChange);
+
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener(THEME_CHANGE_EVENT, onStoreChange);
+  };
+}
+
+function getStoredTheme(): Theme {
+  return readStoredTheme();
+}
+
+function getServerTheme(): Theme {
+  return DEFAULT_THEME;
+}
+
+function setStoredTheme(theme: Theme) {
+  window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
 }
 
 export function SiteThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(getStoredTheme);
+  const theme = useSyncExternalStore(subscribeToThemeChanges, getStoredTheme, getServerTheme);
 
   const value = useMemo(
     () => ({
       theme,
       toggleTheme: () => {
-        setTheme((currentTheme) => {
-          const nextTheme = currentTheme === "night" ? "day" : "night";
-          window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-          return nextTheme;
-        });
+        const nextTheme = theme === "night" ? "day" : "night";
+        setStoredTheme(nextTheme);
       },
     }),
     [theme],

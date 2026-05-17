@@ -21,12 +21,12 @@ export function SiteChrome({ theme, activePath, eyebrow = "Independent Developer
     <section className="site-chrome" aria-label="Dreaming Flower navigation">
       <div className="site-brand-panel">
         <Link className="site-brand" href="/" aria-label="返回 Dreaming Flower 首页">
-          <span className="site-logo-text">DF</span>
-          <span className="site-title-divider" aria-hidden="true" />
-          <span>
+          <span className="site-brand-main">
+            <span className="site-logo-text">DF</span>
+            <span className="site-title-divider" aria-hidden="true" />
             <strong>{title}</strong>
-            <span>{eyebrow}</span>
           </span>
+          <span className="site-brand-eyebrow">{eyebrow}</span>
         </Link>
       </div>
 

@@ -39,7 +39,10 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   return (
     <BlogShell title={post.title} description={post.description}>
       <article className="blog-article" style={{ "--blog-accent": post.themeAccent } as CSSProperties}>
-        <Link className="blog-back-link" href="/blog">返回博客列表</Link>
+        <Link className="blog-back-link" href="/blog" aria-label="返回博客列表">
+          <span aria-hidden="true">←</span>
+          返回博客列表
+        </Link>
         <time dateTime={post.date}>{post.date}</time>
         <div className="blog-prose">
           <MDXRemote source={post.content} />

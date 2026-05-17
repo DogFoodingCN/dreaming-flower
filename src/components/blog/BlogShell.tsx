@@ -19,7 +19,7 @@ export function BlogShell({ children }: BlogShellProps) {
       <SiteChrome
         theme={theme}
         activePath="/blog"
-        eyebrow="Dreaming Flower Blog"
+        eyebrow="Independent Developer · Product Lab"
         title="繁花盛景"
         onToggleTheme={toggleTheme}
       />
