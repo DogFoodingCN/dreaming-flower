@@ -10,7 +10,7 @@ type SolarSystemSceneProps = {
   theme: Theme;
   sun: Planet;
   planets: Planet[];
-  onSelect: (planet: Planet | null) => void;
+  onSelectAction: (planet: Planet | null) => void;
 };
 
 type Disposable = THREE.BufferGeometry | THREE.Material | THREE.Texture;
@@ -823,15 +823,15 @@ function createOrbitingPlanet({
   createSatellites({ planet, parentMesh: mesh, loader, renderer, disposables, satellites });
 }
 
-export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }: SolarSystemSceneProps) {
+export function SolarSystemScene({ selectedName, theme, sun, planets, onSelectAction }: SolarSystemSceneProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const selectedNameRef = useRef(selectedName);
-  const onSelectRef = useRef(onSelect);
+  const onSelectActionRef = useRef(onSelectAction);
 
   useEffect(() => {
     selectedNameRef.current = selectedName;
-    onSelectRef.current = onSelect;
-  }, [selectedName, onSelect]);
+    onSelectActionRef.current = onSelectAction;
+  }, [selectedName, onSelectAction]);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -1081,7 +1081,7 @@ export function SolarSystemScene({ selectedName, theme, sun, planets, onSelect }
 
       const intersect = getIntersect(event);
       const planet = intersect?.object.userData.planet as Planet | undefined;
-      onSelectRef.current(planet ?? null);
+      onSelectActionRef.current(planet ?? null);
     };
 
     const animate = () => {

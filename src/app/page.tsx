@@ -21,10 +21,10 @@ export default function Home() {
         theme={theme}
         sun={sun}
         planets={planets}
-        onSelect={setSelectedPlanet}
+        onSelectAction={setSelectedPlanet}
       />
       <HomeOverlay theme={theme} onToggleThemeAction={toggleTheme} />
-      <PlanetDock objects={objects} selectedName={selectedName} onSelect={setSelectedPlanet} />
+      <PlanetDock objects={objects} selectedName={selectedName} onSelectAction={setSelectedPlanet} />
     </main>
   );
 }

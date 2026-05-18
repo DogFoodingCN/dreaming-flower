@@ -14,6 +14,8 @@
 
 Routes should stay thin. Page files may compose feature components and pass route params, but should not own feature data parsing, MDX plugin setup, large visual components, or future module registries.
 
+Client component entry props that receive function handlers should use names ending in `Action` (for example `onSelectAction` or `onToggleThemeAction`) so Next.js treats them as intentional action-style props and avoids TS71007 serializability diagnostics.
+
 ## Feature Boundaries
 
 A feature directory is allowed when a capability has its own components plus data, rendering, or types. Current feature directories are `home` and `blog`.
