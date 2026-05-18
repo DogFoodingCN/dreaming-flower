@@ -42,6 +42,14 @@
   pointer-events: auto;
 }
 
+.solar-page--day .site-brand-panel,
+.blog-page--day .site-brand-panel {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
 .site-brand {
   display: flex;
   flex-direction: column;
