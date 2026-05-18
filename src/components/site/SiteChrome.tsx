@@ -8,7 +8,7 @@ type SiteChromeProps = {
   activePath: "/" | "/blog";
   eyebrow?: string;
   title?: string;
-  onToggleTheme: () => void;
+  onToggleThemeAction: () => void;
 };
 
 const navigationItems = [
@@ -16,7 +16,7 @@ const navigationItems = [
   { href: "/blog", label: "博客" },
 ] as const;
 
-export function SiteChrome({ theme, activePath, eyebrow = "Independent Developer · Product Lab", title = "繁花盛景", onToggleTheme }: SiteChromeProps) {
+export function SiteChrome({ theme, activePath, eyebrow = "Independent Developer · Product Lab", title = "繁花盛景", onToggleThemeAction }: SiteChromeProps) {
   return (
     <section className="site-chrome" aria-label="Dreaming Flower navigation">
       <div className="site-brand-panel">
@@ -41,7 +41,7 @@ export function SiteChrome({ theme, activePath, eyebrow = "Independent Developer
         <button
           type="button"
           className="site-theme-toggle"
-          onClick={onToggleTheme}
+          onClick={onToggleThemeAction}
           aria-label={`Switch to ${theme === "night" ? "day" : "night"} mode`}
         >
           {theme === "night" ? "Day mode" : "Night mode"}

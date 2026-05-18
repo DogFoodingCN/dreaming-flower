@@ -21,7 +21,7 @@ export function BlogShell({ children }: BlogShellProps) {
         activePath="/blog"
         eyebrow="Independent Developer · Product Lab"
         title="繁花盛景"
-        onToggleTheme={toggleTheme}
+        onToggleThemeAction={toggleTheme}
       />
       {children}
     </main>

@@ -3,9 +3,9 @@ import type { Theme } from "@/lib/theme";
 
 type HomeOverlayProps = {
   theme: Theme;
-  onToggleTheme: () => void;
+  onToggleThemeAction: () => void;
 };
 
-export function HomeOverlay({ theme, onToggleTheme }: HomeOverlayProps) {
-  return <SiteChrome theme={theme} activePath="/" onToggleTheme={onToggleTheme} />;
+export function HomeOverlay({ theme, onToggleThemeAction }: HomeOverlayProps) {
+  return <SiteChrome theme={theme} activePath="/" onToggleThemeAction={onToggleThemeAction} />;
 }

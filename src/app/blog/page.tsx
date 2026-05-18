@@ -1,9 +1,10 @@
 import type { CSSProperties } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { BlogShell } from "@/features/blog/components/BlogShell";
 import { getBlogPosts } from "@/features/blog/content/posts";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "博客 | Dreaming Flower",
   description: "Dreaming Flower 的产品体验、个人表达和持续写作。",
 };

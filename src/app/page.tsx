@@ -23,7 +23,7 @@ export default function Home() {
         planets={planets}
         onSelect={setSelectedPlanet}
       />
-      <HomeOverlay theme={theme} onToggleTheme={toggleTheme} />
+      <HomeOverlay theme={theme} onToggleThemeAction={toggleTheme} />
       <PlanetDock objects={objects} selectedName={selectedName} onSelect={setSelectedPlanet} />
     </main>
   );
