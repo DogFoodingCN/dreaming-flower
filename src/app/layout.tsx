@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "D F .CN",
+  title: "DogFooding.CN",
   description:
     "Dreaming Flower is a personal galaxy for IP building, product experience, and blog output.",
 };
