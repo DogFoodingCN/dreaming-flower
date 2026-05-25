@@ -52,6 +52,8 @@
 
 .site-brand {
   display: flex;
+  width: max-content;
+  max-width: 100%;
   flex-direction: column;
   gap: 0.5rem;
   color: inherit;
@@ -94,10 +96,12 @@
 }
 
 .site-brand-eyebrow {
+  width: 100%;
   color: var(--solar-brand-muted);
-  font-size: clamp(0.78rem, 1.25vw, 0.98rem);
+  font-size: clamp(0.64rem, 2.5vw, 0.98rem);
   font-weight: 300;
   letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .site-brand:hover .site-logo-text,
@@ -171,10 +175,4 @@
     transform 180ms ease,
     border-color 180ms ease,
     background 180ms ease;
-}
-
-@media (max-width: 1100px) {
-  .site-brand-eyebrow {
-    display: none;
-  }
 }

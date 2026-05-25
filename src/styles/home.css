@@ -404,6 +404,11 @@
     padding: 0.72rem;
   }
 
+  .site-brand {
+    width: max-content;
+    max-width: 100%;
+  }
+
   .site-brand-main {
     gap: 0.45rem;
   }
@@ -418,10 +423,6 @@
 
   .site-brand strong {
     font-size: clamp(1.45rem, 6.3vw, 2rem);
-  }
-
-  .site-brand-eyebrow {
-    display: none;
   }
 
   .site-actions {
