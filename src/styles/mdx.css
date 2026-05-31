@@ -7,6 +7,15 @@
 
 .blog-prose > * {
   margin-inline: 0;
+  margin-block-end: 1.2rem;
+}
+
+.blog-prose > h1,
+.blog-prose > h2,
+.blog-prose > h3,
+.blog-prose > h4,
+.blog-prose > hr {
+  margin-block-end: 0.6rem;
 }
 
 .blog-prose h1,
