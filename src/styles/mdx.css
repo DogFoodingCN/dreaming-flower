@@ -244,6 +244,60 @@
   min-width: 0;
 }
 
+.blog-prose table {
+  width: 100%;
+  margin: 1.4rem 0;
+  border-collapse: collapse;
+  font-size: 0.92em;
+  line-height: 1.5;
+  overflow-x: auto;
+  display: block;
+}
+
+.blog-prose thead {
+  background: rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.blog-prose th {
+  padding: 0.6rem 0.9rem;
+  font-weight: 600;
+  text-align: left;
+  color: rgba(248, 251, 255, 0.9);
+}
+
+.blog-prose td {
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(248, 251, 255, 0.76);
+}
+
+.blog-prose tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.blog-prose tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.blog-page--day .blog-prose thead {
+  background: rgba(255, 255, 255, 0.36);
+  border-bottom-color: rgba(17, 24, 39, 0.1);
+}
+
+.blog-page--day .blog-prose th {
+  color: rgba(17, 24, 39, 0.9);
+}
+
+.blog-page--day .blog-prose td {
+  border-bottom-color: rgba(17, 24, 39, 0.06);
+  color: rgba(17, 24, 39, 0.72);
+}
+
+.blog-page--day .blog-prose tbody tr:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
 .katex-display {
   overflow-x: auto;
   overflow-y: hidden;
