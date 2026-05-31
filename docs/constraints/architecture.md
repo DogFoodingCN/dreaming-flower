@@ -38,6 +38,8 @@ When moving CSS, preserve selector specificity and import order before rewriting
 
 Blog content remains static MDX under `content/blog/`. Required frontmatter fields are `title`, `description`, `date`, `slug`, and `excerpt`; `themeAccent` is optional.
 
+All frontmatter field values must be quoted strings (e.g., `date: "2026-05-30"`) to prevent YAML from auto-parsing non-string values. Unquoted `date: 2026-05-30` is valid YAML but gets parsed as a Date object by `gray-matter`, causing unexpected rendering behavior.
+
 The blog feature may support MDX enhancements such as headings, Mermaid, and LaTeX, but should not become a CMS, database-backed authoring system, moderation workflow, or dynamic publishing platform during the MVP.
 
 ## Future Module Entry Rules
